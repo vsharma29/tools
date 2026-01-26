@@ -1,0 +1,21 @@
+{
+  "name": "cryptotrader-pro",
+  "version": "1.0.0",
+  "description": "Real-time cryptocurrency intraday trading assistant with technical analysis",
+  "main": "index.html",
+  "scripts": {
+    "start": "npx serve .",
+    "dev": "npx live-server --port=3000",
+    "deploy:surge": "npx surge . cryptotrader-pro.surge.sh",
+    "deploy:vercel": "npx vercel --prod"
+  },
+  "keywords": [
+    "crypto",
+    "trading",
+    "bitcoin",
+    "technical-analysis",
+    "dashboard"
+  ],
+  "author": "",
+  "license": "MIT"
+}
