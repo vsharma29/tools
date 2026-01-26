@@ -37,7 +37,69 @@ const state = {
     prices: {},
     showVolume: true,
     tradeSide: 'buy',
-    orderType: 'market'
+    orderType: 'market',
+    demoMode: false
+};
+
+// Demo data for when API is unavailable
+const DEMO_PRICES = {
+    BTCUSDT: { price: 98500, change: 2.34, high: 99200, low: 96800, volume: 1234567890 },
+    ETHUSDT: { price: 3250, change: 1.85, high: 3320, low: 3180, volume: 567890123 },
+    BNBUSDT: { price: 625, change: -0.45, high: 635, low: 618, volume: 123456789 },
+    SOLUSDT: { price: 185, change: 4.21, high: 192, low: 178, volume: 234567890 },
+    XRPUSDT: { price: 2.45, change: -1.23, high: 2.52, low: 2.38, volume: 345678901 },
+    ADAUSDT: { price: 0.92, change: 0.87, high: 0.95, low: 0.89, volume: 156789012 },
+    DOGEUSDT: { price: 0.38, change: 3.45, high: 0.40, low: 0.36, volume: 267890123 },
+    DOTUSDT: { price: 8.75, change: -0.92, high: 8.95, low: 8.55, volume: 178901234 },
+    MATICUSDT: { price: 1.15, change: 1.56, high: 1.20, low: 1.10, volume: 189012345 },
+    LTCUSDT: { price: 105, change: 0.23, high: 108, low: 102, volume: 90123456 }
+};
+
+// Generate realistic demo candlestick data
+const generateDemoCandles = (symbol, count = 500) => {
+    const basePrice = DEMO_PRICES[symbol]?.price || 50000;
+    const candles = [];
+    const now = Math.floor(Date.now() / 1000);
+    const interval = 15 * 60; // 15 minutes in seconds
+
+    let price = basePrice * 0.95;
+
+    for (let i = 0; i < count; i++) {
+        const time = now - (count - i) * interval;
+        const volatility = basePrice * 0.002;
+        const trend = Math.sin(i / 50) * volatility;
+        const random = (Math.random() - 0.5) * volatility * 2;
+
+        const open = price;
+        const change = trend + random;
+        const close = open + change;
+        const high = Math.max(open, close) + Math.random() * volatility;
+        const low = Math.min(open, close) - Math.random() * volatility;
+        const volume = basePrice * (1000 + Math.random() * 5000);
+
+        candles.push({ time, open, high, low, close, volume });
+        price = close;
+    }
+
+    return candles;
+};
+
+// Generate demo order book
+const generateDemoOrderBook = (symbol) => {
+    const basePrice = DEMO_PRICES[symbol]?.price || 50000;
+    const asks = [];
+    const bids = [];
+
+    for (let i = 0; i < 10; i++) {
+        const askPrice = basePrice * (1 + 0.0001 * (i + 1));
+        const bidPrice = basePrice * (1 - 0.0001 * (i + 1));
+        const amount = (Math.random() * 2 + 0.1).toFixed(4);
+
+        asks.push([askPrice.toFixed(2), amount]);
+        bids.push([bidPrice.toFixed(2), amount]);
+    }
+
+    return { asks, bids };
 };
 
 // Binance API endpoints
@@ -496,8 +558,12 @@ const addCandleToChart = (candle) => {
 // API & WebSocket Functions
 // ============================================
 const fetchKlines = async (symbol, interval, limit = 500) => {
+    if (state.demoMode) {
+        return generateDemoCandles(symbol, limit);
+    }
     try {
         const response = await fetch(`${BINANCE_REST}/klines?symbol=${symbol}&interval=${interval}&limit=${limit}`);
+        if (!response.ok) throw new Error('API error');
         const data = await response.json();
 
         return data.map(k => ({
@@ -509,39 +575,138 @@ const fetchKlines = async (symbol, interval, limit = 500) => {
             volume: parseFloat(k[5]),
         }));
     } catch (error) {
-        console.error('Error fetching klines:', error);
-        return [];
+        console.error('Error fetching klines, switching to demo mode:', error);
+        state.demoMode = true;
+        showToast('warning', 'Demo Mode', 'Using simulated data - API unavailable');
+        return generateDemoCandles(symbol, limit);
     }
 };
 
 const fetch24hTicker = async (symbol) => {
+    if (state.demoMode) {
+        const demo = DEMO_PRICES[symbol] || DEMO_PRICES.BTCUSDT;
+        return {
+            c: demo.price.toString(),
+            P: demo.change.toString(),
+            h: demo.high.toString(),
+            l: demo.low.toString(),
+            q: demo.volume.toString()
+        };
+    }
     try {
         const response = await fetch(`${BINANCE_REST}/ticker/24hr?symbol=${symbol}`);
+        if (!response.ok) throw new Error('API error');
         return await response.json();
     } catch (error) {
         console.error('Error fetching ticker:', error);
-        return null;
+        const demo = DEMO_PRICES[symbol] || DEMO_PRICES.BTCUSDT;
+        return {
+            c: demo.price.toString(),
+            P: demo.change.toString(),
+            h: demo.high.toString(),
+            l: demo.low.toString(),
+            q: demo.volume.toString()
+        };
     }
 };
 
 const fetchOrderBook = async (symbol, limit = 10) => {
+    if (state.demoMode) {
+        return generateDemoOrderBook(symbol);
+    }
     try {
         const response = await fetch(`${BINANCE_REST}/depth?symbol=${symbol}&limit=${limit}`);
+        if (!response.ok) throw new Error('API error');
         return await response.json();
     } catch (error) {
         console.error('Error fetching order book:', error);
-        return null;
+        return generateDemoOrderBook(symbol);
     }
 };
 
 const fetchRecentTrades = async (symbol, limit = 20) => {
+    if (state.demoMode) {
+        return generateDemoTrades(symbol, limit);
+    }
     try {
         const response = await fetch(`${BINANCE_REST}/trades?symbol=${symbol}&limit=${limit}`);
+        if (!response.ok) throw new Error('API error');
         return await response.json();
     } catch (error) {
         console.error('Error fetching trades:', error);
-        return [];
+        return generateDemoTrades(symbol, limit);
     }
+};
+
+// Generate demo trades
+const generateDemoTrades = (symbol, limit = 20) => {
+    const basePrice = DEMO_PRICES[symbol]?.price || 50000;
+    const trades = [];
+    const now = Date.now();
+
+    for (let i = 0; i < limit; i++) {
+        trades.push({
+            p: (basePrice * (1 + (Math.random() - 0.5) * 0.001)).toFixed(2),
+            q: (Math.random() * 0.5 + 0.01).toFixed(4),
+            T: now - i * 1000,
+            m: Math.random() > 0.5
+        });
+    }
+    return trades;
+};
+
+// Demo mode intervals
+let demoIntervals = [];
+
+const clearDemoIntervals = () => {
+    demoIntervals.forEach(id => clearInterval(id));
+    demoIntervals = [];
+};
+
+const startDemoUpdates = (symbol) => {
+    clearDemoIntervals();
+
+    // Simulate price updates every second
+    demoIntervals.push(setInterval(() => {
+        const demo = DEMO_PRICES[symbol] || DEMO_PRICES.BTCUSDT;
+        const priceChange = (Math.random() - 0.5) * demo.price * 0.0005;
+        demo.price += priceChange;
+
+        updateTickerDisplay({
+            c: demo.price.toString(),
+            P: demo.change.toString(),
+            h: demo.high.toString(),
+            l: demo.low.toString(),
+            q: demo.volume.toString()
+        });
+
+        // Update last candle
+        if (state.candleData.length > 0) {
+            const lastCandle = state.candleData[state.candleData.length - 1];
+            lastCandle.close = demo.price;
+            lastCandle.high = Math.max(lastCandle.high, demo.price);
+            lastCandle.low = Math.min(lastCandle.low, demo.price);
+            addCandleToChart(lastCandle);
+        }
+
+        checkAlerts(symbol, demo.price);
+    }, 1000));
+
+    // Simulate order book updates every 500ms
+    demoIntervals.push(setInterval(() => {
+        updateOrderBook(generateDemoOrderBook(symbol));
+    }, 500));
+
+    // Simulate trade updates every 300ms
+    demoIntervals.push(setInterval(() => {
+        const demo = DEMO_PRICES[symbol] || DEMO_PRICES.BTCUSDT;
+        addRecentTrade({
+            p: (demo.price * (1 + (Math.random() - 0.5) * 0.0002)).toFixed(2),
+            q: (Math.random() * 0.3 + 0.01).toFixed(4),
+            T: Date.now(),
+            m: Math.random() > 0.5
+        });
+    }, 300));
 };
 
 const connectWebSocket = (symbol, timeframe) => {
@@ -551,11 +716,24 @@ const connectWebSocket = (symbol, timeframe) => {
             ws.close();
         }
     });
+    clearDemoIntervals();
+
+    // If in demo mode, use simulated updates
+    if (state.demoMode) {
+        startDemoUpdates(symbol);
+        return;
+    }
 
     const symbolLower = symbol.toLowerCase();
 
     // Kline WebSocket
     state.websockets.kline = new WebSocket(`${BINANCE_WS}/${symbolLower}@kline_${timeframe}`);
+    state.websockets.kline.onerror = () => {
+        console.log('WebSocket error, switching to demo mode');
+        state.demoMode = true;
+        showToast('warning', 'Demo Mode', 'Using simulated data - WebSocket unavailable');
+        startDemoUpdates(symbol);
+    };
     state.websockets.kline.onmessage = (event) => {
         const data = JSON.parse(event.data);
         const kline = data.k;
