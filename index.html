@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CryptoTrader Pro - Intraday Trading Assistant</title>
+    <script src="https://unpkg.com/lightweight-charts@4.1.0/dist/lightweight-charts.standalone.production.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="logo">
+            <i class="fas fa-chart-line"></i>
+            <span>CryptoTrader Pro</span>
+        </div>
+        <div class="header-center">
+            <div class="market-status">
+                <span class="status-dot"></span>
+                <span>Markets Open 24/7</span>
+            </div>
+            <div class="last-update">
+                Last Update: <span id="lastUpdate">--:--:--</span>
+            </div>
+        </div>
+        <div class="header-right">
+            <button class="theme-toggle" id="themeToggle">
+                <i class="fas fa-moon"></i>
+            </button>
+            <button class="settings-btn">
+                <i class="fas fa-cog"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <div class="main-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-section">
+                <h3><i class="fas fa-star"></i> Watchlist</h3>
+                <div class="watchlist" id="watchlist">
+                    <!-- Populated by JS -->
+                </div>
+                <button class="add-watchlist-btn" id="addWatchlistBtn">
+                    <i class="fas fa-plus"></i> Add Symbol
+                </button>
+            </div>
+
+            <div class="sidebar-section">
+                <h3><i class="fas fa-wallet"></i> Portfolio</h3>
+                <div class="portfolio-summary">
+                    <div class="portfolio-total">
+                        <span>Total Value</span>
+                        <span class="value" id="portfolioTotal">$0.00</span>
+                    </div>
+                    <div class="portfolio-pnl">
+                        <span>24h P&L</span>
+                        <span class="value" id="portfolioPnl">$0.00</span>
+                    </div>
+                </div>
+                <div class="portfolio-list" id="portfolioList">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+
+            <div class="sidebar-section">
+                <h3><i class="fas fa-bell"></i> Alerts</h3>
+                <div class="alerts-list" id="alertsList">
+                    <div class="no-alerts">No active alerts</div>
+                </div>
+                <button class="add-alert-btn" id="addAlertBtn">
+                    <i class="fas fa-plus"></i> New Alert
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Top Bar with Symbol Selection -->
+            <div class="symbol-bar">
+                <div class="symbol-selector">
+                    <select id="symbolSelect">
+                        <option value="BTCUSDT">BTC/USDT</option>
+                        <option value="ETHUSDT">ETH/USDT</option>
+                        <option value="BNBUSDT">BNB/USDT</option>
+                        <option value="XRPUSDT">XRP/USDT</option>
+                        <option value="SOLUSDT">SOL/USDT</option>
+                        <option value="ADAUSDT">ADA/USDT</option>
+                        <option value="DOGEUSDT">DOGE/USDT</option>
+                        <option value="DOTUSDT">DOT/USDT</option>
+                        <option value="MATICUSDT">MATIC/USDT</option>
+                        <option value="LTCUSDT">LTC/USDT</option>
+                    </select>
+                </div>
+                <div class="current-price" id="currentPrice">
+                    <span class="price">$0.00</span>
+                    <span class="change positive">+0.00%</span>
+                </div>
+                <div class="price-stats">
+                    <div class="stat">
+                        <span class="label">24h High</span>
+                        <span class="value" id="highPrice">$0.00</span>
+                    </div>
+                    <div class="stat">
+                        <span class="label">24h Low</span>
+                        <span class="value" id="lowPrice">$0.00</span>
+                    </div>
+                    <div class="stat">
+                        <span class="label">24h Volume</span>
+                        <span class="value" id="volume">0</span>
+                    </div>
+                </div>
+                <div class="timeframe-selector">
+                    <button class="tf-btn" data-tf="1m">1m</button>
+                    <button class="tf-btn" data-tf="5m">5m</button>
+                    <button class="tf-btn active" data-tf="15m">15m</button>
+                    <button class="tf-btn" data-tf="1h">1h</button>
+                    <button class="tf-btn" data-tf="4h">4h</button>
+                    <button class="tf-btn" data-tf="1d">1d</button>
+                </div>
+            </div>
+
+            <!-- Chart Container -->
+            <div class="chart-section">
+                <div class="chart-container" id="chartContainer"></div>
+                <div class="chart-tools">
+                    <button class="tool-btn active" data-tool="crosshair" title="Crosshair">
+                        <i class="fas fa-crosshairs"></i>
+                    </button>
+                    <button class="tool-btn" data-tool="trendline" title="Trend Line">
+                        <i class="fas fa-minus"></i>
+                    </button>
+                    <button class="tool-btn" data-tool="horizontal" title="Horizontal Line">
+                        <i class="fas fa-grip-lines"></i>
+                    </button>
+                    <button class="tool-btn" data-tool="fibonacci" title="Fibonacci">
+                        <i class="fas fa-wave-square"></i>
+                    </button>
+                    <div class="tool-divider"></div>
+                    <button class="tool-btn" id="toggleVolume" title="Toggle Volume">
+                        <i class="fas fa-chart-bar"></i>
+                    </button>
+                    <button class="tool-btn" id="screenshotBtn" title="Screenshot">
+                        <i class="fas fa-camera"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Indicators & Signals Panel -->
+            <div class="analysis-panel">
+                <!-- Technical Indicators -->
+                <div class="panel-section indicators-section">
+                    <h3><i class="fas fa-chart-area"></i> Technical Indicators</h3>
+                    <div class="indicators-grid" id="indicatorsGrid">
+                        <div class="indicator-card">
+                            <div class="indicator-header">
+                                <span class="indicator-name">RSI (14)</span>
+                                <span class="indicator-value" id="rsiValue">--</span>
+                            </div>
+                            <div class="indicator-bar">
+                                <div class="bar-fill rsi-bar" id="rsiFill"></div>
+                                <div class="bar-zones">
+                                    <span class="zone oversold">30</span>
+                                    <span class="zone overbought">70</span>
+                                </div>
+                            </div>
+                            <span class="indicator-signal" id="rsiSignal">--</span>
+                        </div>
+
+                        <div class="indicator-card">
+                            <div class="indicator-header">
+                                <span class="indicator-name">MACD</span>
+                                <span class="indicator-value" id="macdValue">--</span>
+                            </div>
+                            <div class="macd-display">
+                                <div class="macd-line">
+                                    <span>Signal:</span>
+                                    <span id="macdSignalLine">--</span>
+                                </div>
+                                <div class="macd-histogram" id="macdHistogram"></div>
+                            </div>
+                            <span class="indicator-signal" id="macdSignal">--</span>
+                        </div>
+
+                        <div class="indicator-card">
+                            <div class="indicator-header">
+                                <span class="indicator-name">Bollinger Bands</span>
+                                <span class="indicator-value" id="bbValue">--</span>
+                            </div>
+                            <div class="bb-display">
+                                <div class="bb-row">
+                                    <span>Upper:</span>
+                                    <span id="bbUpper">--</span>
+                                </div>
+                                <div class="bb-row">
+                                    <span>Middle:</span>
+                                    <span id="bbMiddle">--</span>
+                                </div>
+                                <div class="bb-row">
+                                    <span>Lower:</span>
+                                    <span id="bbLower">--</span>
+                                </div>
+                            </div>
+                            <span class="indicator-signal" id="bbSignal">--</span>
+                        </div>
+
+                        <div class="indicator-card">
+                            <div class="indicator-header">
+                                <span class="indicator-name">Moving Averages</span>
+                            </div>
+                            <div class="ma-display">
+                                <div class="ma-row">
+                                    <span>EMA 9:</span>
+                                    <span id="ema9">--</span>
+                                </div>
+                                <div class="ma-row">
+                                    <span>EMA 21:</span>
+                                    <span id="ema21">--</span>
+                                </div>
+                                <div class="ma-row">
+                                    <span>SMA 50:</span>
+                                    <span id="sma50">--</span>
+                                </div>
+                                <div class="ma-row">
+                                    <span>SMA 200:</span>
+                                    <span id="sma200">--</span>
+                                </div>
+                            </div>
+                            <span class="indicator-signal" id="maSignal">--</span>
+                        </div>
+
+                        <div class="indicator-card">
+                            <div class="indicator-header">
+                                <span class="indicator-name">Stochastic (14,3,3)</span>
+                                <span class="indicator-value" id="stochValue">--</span>
+                            </div>
+                            <div class="indicator-bar">
+                                <div class="bar-fill stoch-bar" id="stochFill"></div>
+                                <div class="bar-zones">
+                                    <span class="zone oversold">20</span>
+                                    <span class="zone overbought">80</span>
+                                </div>
+                            </div>
+                            <span class="indicator-signal" id="stochSignal">--</span>
+                        </div>
+
+                        <div class="indicator-card">
+                            <div class="indicator-header">
+                                <span class="indicator-name">ATR (14)</span>
+                                <span class="indicator-value" id="atrValue">--</span>
+                            </div>
+                            <div class="atr-display">
+                                <div class="atr-row">
+                                    <span>Volatility:</span>
+                                    <span id="atrVolatility">--</span>
+                                </div>
+                                <div class="atr-row">
+                                    <span>Stop Loss:</span>
+                                    <span id="atrStopLoss">--</span>
+                                </div>
+                            </div>
+                            <span class="indicator-signal" id="atrSignal">--</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Trading Signals -->
+                <div class="panel-section signals-section">
+                    <h3><i class="fas fa-signal"></i> Trading Signals</h3>
+                    <div class="signal-summary">
+                        <div class="signal-meter">
+                            <div class="meter-label">Overall Signal</div>
+                            <div class="meter-gauge" id="signalGauge">
+                                <div class="gauge-fill"></div>
+                                <div class="gauge-needle" id="gaugeNeedle"></div>
+                            </div>
+                            <div class="meter-labels">
+                                <span>Strong Sell</span>
+                                <span>Neutral</span>
+                                <span>Strong Buy</span>
+                            </div>
+                        </div>
+                        <div class="signal-counts">
+                            <div class="signal-count buy">
+                                <span class="count" id="buyCount">0</span>
+                                <span class="label">Buy</span>
+                            </div>
+                            <div class="signal-count neutral">
+                                <span class="count" id="neutralCount">0</span>
+                                <span class="label">Neutral</span>
+                            </div>
+                            <div class="signal-count sell">
+                                <span class="count" id="sellCount">0</span>
+                                <span class="label">Sell</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="signal-recommendation" id="signalRecommendation">
+                        <div class="recommendation-label">Recommendation</div>
+                        <div class="recommendation-value">--</div>
+                        <div class="recommendation-confidence">Confidence: --</div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Right Panel -->
+        <aside class="right-panel">
+            <!-- Order Book -->
+            <div class="panel-section orderbook-section">
+                <h3><i class="fas fa-book"></i> Order Book</h3>
+                <div class="orderbook-header">
+                    <span>Price (USDT)</span>
+                    <span>Amount</span>
+                    <span>Total</span>
+                </div>
+                <div class="orderbook-asks" id="orderbookAsks">
+                    <!-- Populated by JS -->
+                </div>
+                <div class="orderbook-spread" id="orderbookSpread">
+                    <span class="spread-price">--</span>
+                    <span class="spread-percent">Spread: --</span>
+                </div>
+                <div class="orderbook-bids" id="orderbookBids">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+
+            <!-- Recent Trades -->
+            <div class="panel-section trades-section">
+                <h3><i class="fas fa-exchange-alt"></i> Recent Trades</h3>
+                <div class="trades-header">
+                    <span>Price</span>
+                    <span>Amount</span>
+                    <span>Time</span>
+                </div>
+                <div class="trades-list" id="tradesList">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+
+            <!-- Quick Trade -->
+            <div class="panel-section trade-section">
+                <h3><i class="fas fa-bolt"></i> Quick Trade</h3>
+                <div class="trade-tabs">
+                    <button class="trade-tab active" data-side="buy">Buy</button>
+                    <button class="trade-tab" data-side="sell">Sell</button>
+                </div>
+                <div class="trade-form">
+                    <div class="trade-type-selector">
+                        <button class="type-btn active" data-type="market">Market</button>
+                        <button class="type-btn" data-type="limit">Limit</button>
+                        <button class="type-btn" data-type="stop">Stop</button>
+                    </div>
+                    <div class="trade-input-group" id="limitPriceGroup" style="display:none;">
+                        <label>Price</label>
+                        <input type="number" id="limitPrice" placeholder="0.00">
+                    </div>
+                    <div class="trade-input-group">
+                        <label>Amount</label>
+                        <input type="number" id="tradeAmount" placeholder="0.00">
+                        <div class="amount-buttons">
+                            <button data-percent="25">25%</button>
+                            <button data-percent="50">50%</button>
+                            <button data-percent="75">75%</button>
+                            <button data-percent="100">100%</button>
+                        </div>
+                    </div>
+                    <div class="trade-input-group">
+                        <label>Total</label>
+                        <input type="number" id="tradeTotal" placeholder="0.00" readonly>
+                    </div>
+                    <div class="trade-summary">
+                        <div class="summary-row">
+                            <span>Est. Fee:</span>
+                            <span id="tradeFee">0.00 USDT</span>
+                        </div>
+                    </div>
+                    <button class="trade-submit-btn buy-btn" id="submitTrade">
+                        Buy BTC
+                    </button>
+                </div>
+            </div>
+        </aside>
+    </div>
+
+    <!-- Modals -->
+    <div class="modal" id="alertModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Create Price Alert</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Symbol</label>
+                    <select id="alertSymbol">
+                        <option value="BTCUSDT">BTC/USDT</option>
+                        <option value="ETHUSDT">ETH/USDT</option>
+                        <option value="BNBUSDT">BNB/USDT</option>
+                        <option value="SOLUSDT">SOL/USDT</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Condition</label>
+                    <select id="alertCondition">
+                        <option value="above">Price Above</option>
+                        <option value="below">Price Below</option>
+                        <option value="cross">Price Crosses</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Price</label>
+                    <input type="number" id="alertPrice" placeholder="Enter price">
+                </div>
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="alertSound" checked>
+                        Play sound
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary modal-cancel">Cancel</button>
+                <button class="btn btn-primary" id="createAlert">Create Alert</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Toast -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script src="app.js"></script>
+</body>
+</html>
