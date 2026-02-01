@@ -1,0 +1,121 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: Buyer Voice Agent — serverless deployment
+
+Globals:
+  Function:
+    Timeout: 900          # 15 min max for voice calls
+    MemorySize: 1024
+    Runtime: python3.11
+    Architectures:
+      - arm64             # Graviton — better price/perf
+    Environment:
+      Variables:
+        ANTHROPIC_API_KEY: !Ref AnthropicApiKey
+        AUDIO_STT_PROVIDER: !Ref AudioSttProvider
+        DEEPGRAM_API_KEY: !Ref DeepgramApiKey
+        AUDIO_TTS_PROVIDER: !Ref AudioTtsProvider
+        CARTESIA_API_KEY: !Ref CartesiaApiKey
+        TELEPHONY_PROVIDER: twilio
+        TWILIO_ACCOUNT_SID: !Ref TwilioAccountSid
+        TWILIO_AUTH_TOKEN: !Ref TwilioAuthToken
+        TWILIO_PHONE_NUMBER: !Ref TwilioPhoneNumber
+        OUTPUT_MODE: both
+        S3_BUCKET_NAME: !Ref BriefsBucket
+        S3_REGION: !Ref AWS::Region
+        WEBHOOK_URL: !Ref WebhookUrl
+        ENVIRONMENT: production
+
+Parameters:
+  AnthropicApiKey:
+    Type: String
+    NoEcho: true
+  DeepgramApiKey:
+    Type: String
+    NoEcho: true
+    Default: ""
+  AudioSttProvider:
+    Type: String
+    Default: deepgram
+  AudioTtsProvider:
+    Type: String
+    Default: cartesia
+  CartesiaApiKey:
+    Type: String
+    NoEcho: true
+    Default: ""
+  TwilioAccountSid:
+    Type: String
+    Default: ""
+  TwilioAuthToken:
+    Type: String
+    NoEcho: true
+    Default: ""
+  TwilioPhoneNumber:
+    Type: String
+    Default: ""
+  WebhookUrl:
+    Type: String
+    Default: ""
+
+Resources:
+  # --- S3 bucket for buyer briefs ---
+  BriefsBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "buyer-briefs-${AWS::AccountId}"
+      LifecycleConfiguration:
+        Rules:
+          - Id: ArchiveOldBriefs
+            Status: Enabled
+            Transitions:
+              - StorageClass: GLACIER
+                TransitionInDays: 90
+
+  # --- Lambda function ---
+  VoiceAgentFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../
+      Handler: handler.handler
+      Description: Buyer Voice Agent API
+      Policies:
+        - S3CrudPolicy:
+            BucketName: !Ref BriefsBucket
+      Events:
+        ApiGateway:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref VoiceAgentApi
+
+  # --- HTTP API (API Gateway v2) ---
+  VoiceAgentApi:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      StageName: prod
+      CorsConfiguration:
+        AllowOrigins:
+          - "*"
+        AllowMethods:
+          - GET
+          - POST
+          - OPTIONS
+        AllowHeaders:
+          - Content-Type
+          - Authorization
+
+  # --- WebSocket API (for Twilio Media Streams) ---
+  # NOTE: SAM doesn't natively support WebSocket APIs.
+  # For production, deploy the WebSocket handler on:
+  #   Option A: ECS Fargate (recommended for persistent WS connections)
+  #   Option B: API Gateway WebSocket API + Lambda (via separate CloudFormation)
+  #   Option C: EC2/Lightsail with the FastAPI app running under uvicorn
+  # See README.md for guidance.
+
+Outputs:
+  ApiEndpoint:
+    Description: HTTP API endpoint
+    Value: !Sub "https://${VoiceAgentApi}.execute-api.${AWS::Region}.amazonaws.com/prod"
+  BriefsBucketName:
+    Description: S3 bucket for buyer briefs
+    Value: !Ref BriefsBucket
