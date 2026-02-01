@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from typing import AsyncIterator
+import asyncio
+from typing import AsyncIterator, Optional
 
 import cartesia
 
@@ -27,7 +28,9 @@ class CartesiaTTS(TTSProvider):
             chunks.append(chunk)
         return b"".join(chunks)
 
-    async def synthesize_stream(self, text: str) -> AsyncIterator[bytes]:
+    async def synthesize_stream(
+        self, text: str, cancel_event: Optional[asyncio.Event] = None
+    ) -> AsyncIterator[bytes]:
         async for output in self._client.tts.sse(
             model_id=self._model_id,
             transcript=text,
@@ -35,5 +38,7 @@ class CartesiaTTS(TTSProvider):
             output_format=self._output_format,
             stream=True,
         ):
+            if cancel_event and cancel_event.is_set():
+                return
             if hasattr(output, "audio") and output.audio:
                 yield output.audio

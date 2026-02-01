@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from typing import AsyncIterator
+import asyncio
+from typing import AsyncIterator, Optional
 
 import httpx
 
@@ -32,7 +33,9 @@ class ElevenLabsTTS(TTSProvider):
             resp.raise_for_status()
             return resp.content
 
-    async def synthesize_stream(self, text: str) -> AsyncIterator[bytes]:
+    async def synthesize_stream(
+        self, text: str, cancel_event: Optional[asyncio.Event] = None
+    ) -> AsyncIterator[bytes]:
         async with httpx.AsyncClient() as client:
             async with client.stream(
                 "POST",
@@ -47,4 +50,6 @@ class ElevenLabsTTS(TTSProvider):
             ) as resp:
                 resp.raise_for_status()
                 async for chunk in resp.aiter_bytes(chunk_size=4096):
+                    if cancel_event and cancel_event.is_set():
+                        return
                     yield chunk

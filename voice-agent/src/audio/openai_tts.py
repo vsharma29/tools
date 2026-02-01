@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from typing import AsyncIterator
+import asyncio
+from typing import AsyncIterator, Optional
 
 from openai import AsyncOpenAI
 
@@ -24,7 +25,9 @@ class OpenAITTS(TTSProvider):
         )
         return response.content
 
-    async def synthesize_stream(self, text: str) -> AsyncIterator[bytes]:
+    async def synthesize_stream(
+        self, text: str, cancel_event: Optional[asyncio.Event] = None
+    ) -> AsyncIterator[bytes]:
         async with self._client.audio.speech.with_streaming_response.create(
             model="tts-1",
             voice=self._voice,
@@ -33,4 +36,6 @@ class OpenAITTS(TTSProvider):
             speed=1.0,
         ) as response:
             async for chunk in response.iter_bytes(chunk_size=4096):
+                if cancel_event and cancel_event.is_set():
+                    return
                 yield chunk

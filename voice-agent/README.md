@@ -36,7 +36,7 @@ The pipeline is designed for sub-second turn latency:
 2. **TTS pipelining** — TTS synthesis starts on sentence N while sentence N-1 audio is still being played to the caller.
 3. **Deepgram Nova-2** — Streaming STT with ~200ms endpointing for fast utterance detection.
 4. **Cartesia Sonic** — Sub-200ms time-to-first-byte TTS.
-5. **Barge-in ready** — Architecture supports interrupting playback when the user speaks.
+5. **Barge-in interruption** — Energy-based VAD monitors incoming audio during TTS playback. When the caller speaks, TTS is cancelled via `asyncio.Event`, Twilio's playback buffer is cleared, and the caller's audio is processed immediately.
 
 ## Quick Start
 
@@ -83,6 +83,109 @@ curl -X POST http://localhost:8000/api/turns/text \
 ```bash
 pytest tests/ -v
 ```
+
+## Testing Guide
+
+### Level 1: Unit tests (no API keys needed)
+
+```bash
+pytest tests/ -v
+```
+
+This runs:
+- **test_guardrails.py** — input/output guardrail rules, sensitive data blocking, abuse detection
+- **test_schema.py** — buyer brief serialisation/deserialisation
+- **test_vad.py** — VAD energy detection, barge-in triggering, buffer management, edge cases
+
+### Level 2: Barge-in simulation (no API keys needed)
+
+```bash
+python scripts/test_barge_in.py
+```
+
+Runs a full barge-in lifecycle with synthetic PCM audio:
+1. Calibrates VAD from silence
+2. Verifies no false triggers during silence
+3. Simulates caller interruption → verifies cancel_event fires
+4. Verifies buffered audio is collected
+5. Verifies clean next turn
+
+### Level 3: Text-mode interview (needs ANTHROPIC_API_KEY only)
+
+```bash
+# Terminal 1
+ANTHROPIC_API_KEY=sk-ant-... uvicorn src.api:app --port 8000
+
+# Terminal 2
+python scripts/test_text_interview.py
+```
+
+Interactive conversation with Ava. Tests the full Claude agent loop including:
+- Interview flow (greeting → questions → brief generation)
+- Guardrails (try typing a credit card number or abusive language)
+- Tool calling (save_buyer_brief, transfer_to_human)
+- Brief output as JSON
+
+Sample conversation to test:
+```
+You: Hi, I'm looking for an investment property
+You: Budget is 600 to 800k, I have pre-approval
+You: Looking at western Sydney, maybe Penrith or Blacktown area
+You: I want a house, at least 3 bedrooms, 600sqm land minimum
+You: Cash flow focused, want at least 5% yield
+You: Couple with one kid, need good schools nearby
+You: Ready to buy in the next 3 months
+You: That sounds right, nothing else to add
+```
+
+### Level 4: WebSocket interview (needs ANTHROPIC_API_KEY only)
+
+```bash
+# Terminal 1
+ANTHROPIC_API_KEY=sk-ant-... uvicorn src.api:app --port 8000
+
+# Terminal 2
+pip install websockets
+python scripts/test_websocket.py
+```
+
+Same as Level 3 but over a persistent WebSocket connection (closer to production flow).
+
+### Level 5: Full voice with Twilio (needs all API keys)
+
+Requires: `ANTHROPIC_API_KEY`, `DEEPGRAM_API_KEY`, `CARTESIA_API_KEY`, `TWILIO_*` keys.
+
+```bash
+# Start with ngrok for public URL
+ngrok http 8000
+
+# Start server
+cp .env.example .env  # fill in all keys
+uvicorn src.api:app --port 8000
+
+# Trigger an outbound call
+curl -X POST http://localhost:8000/api/calls/outbound \
+  -H "Content-Type: application/json" \
+  -d '{"to_number": "+61400000000", "prospect_name": "Jane Smith"}'
+```
+
+### Testing guardrails specifically
+
+```bash
+# In a Level 3+ session, try these inputs:
+"My TFN is 12345678"              → Should block and redirect
+"My card is 4111 2222 3333 4444"  → Should block and redirect
+"What about bitcoin?"             → Should warn, steer back (2x → terminate)
+"This is bullshit"                → Should warn (2x → terminate)
+```
+
+### Testing barge-in specifically
+
+In a Level 5 (Twilio) session:
+1. Let Ava start her greeting
+2. Interrupt her mid-sentence by speaking
+3. Verify: her audio stops immediately and she processes your words
+4. Check metrics: `GET /api/sessions/{id}/metrics` should show `barge_in_count > 0`
 
 ## Adding a Mobile Phone Provider (Twilio)
 
@@ -219,12 +322,13 @@ voice-agent/
 │   │   ├── prompts.py          # System prompt and greeting templates
 │   │   └── tools.py            # Claude tool definitions
 │   ├── audio/
-│   │   ├── base.py             # STT/TTS abstract interfaces
+│   │   ├── base.py             # STT/TTS abstract interfaces (cancel_event support)
+│   │   ├── vad.py              # Voice Activity Detection + BargeInManager
 │   │   ├── deepgram_stt.py     # Deepgram Nova-2 adapter
 │   │   ├── whisper_stt.py      # OpenAI Whisper adapter
-│   │   ├── cartesia_tts.py     # Cartesia Sonic adapter
-│   │   ├── openai_tts.py       # OpenAI TTS adapter
-│   │   ├── elevenlabs_tts.py   # ElevenLabs adapter
+│   │   ├── cartesia_tts.py     # Cartesia Sonic adapter (cancellable)
+│   │   ├── openai_tts.py       # OpenAI TTS adapter (cancellable)
+│   │   ├── elevenlabs_tts.py   # ElevenLabs adapter (cancellable)
 │   │   └── factory.py          # Provider factory
 │   ├── telephony/
 │   │   ├── base.py             # Telephony abstract interface
@@ -237,6 +341,13 @@ voice-agent/
 │   └── schemas/
 │       └── buyer_brief.py      # Pydantic models (exhaustive)
 ├── tests/
+│   ├── test_guardrails.py      # Guardrail unit tests
+│   ├── test_schema.py          # Brief schema tests
+│   └── test_vad.py             # VAD + barge-in tests
+├── scripts/
+│   ├── test_text_interview.py  # Interactive text-mode test (HTTP)
+│   ├── test_websocket.py       # Interactive WebSocket test
+│   └── test_barge_in.py        # Standalone barge-in simulation
 ├── infra/template.yaml         # AWS SAM template
 ├── Dockerfile                  # Container deployment
 └── pyproject.toml

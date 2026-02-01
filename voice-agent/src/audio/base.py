@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
+import asyncio
 from abc import ABC, abstractmethod
-from typing import AsyncIterator
+from typing import AsyncIterator, Optional
 
 
 class STTProvider(ABC):
@@ -21,7 +22,12 @@ class STTProvider(ABC):
 
 
 class TTSProvider(ABC):
-    """Text-to-Speech provider interface."""
+    """Text-to-Speech provider interface.
+
+    All streaming methods accept an optional `cancel_event` — an asyncio.Event
+    that, when set, causes the generator to stop yielding audio immediately.
+    This is the mechanism used for barge-in interruption.
+    """
 
     @abstractmethod
     async def synthesize(self, text: str) -> bytes:
@@ -29,6 +35,11 @@ class TTSProvider(ABC):
         ...
 
     @abstractmethod
-    async def synthesize_stream(self, text: str) -> AsyncIterator[bytes]:
-        """Yield audio chunks as they are generated — for real-time playback."""
+    async def synthesize_stream(
+        self, text: str, cancel_event: Optional[asyncio.Event] = None
+    ) -> AsyncIterator[bytes]:
+        """Yield audio chunks as they are generated.
+
+        If cancel_event is set during generation, stop yielding immediately.
+        """
         ...

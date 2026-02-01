@@ -177,17 +177,96 @@ async def ws_text(websocket: WebSocket, session_id: str):
 
 @app.websocket("/api/telephony/twilio/media-stream")
 async def twilio_media_stream(websocket: WebSocket):
-    """Handle Twilio Media Stream WebSocket for real-time voice.
+    """Handle Twilio Media Stream WebSocket for real-time voice WITH barge-in.
 
-    Protocol:
-    - Twilio sends JSON messages with base64-encoded mulaw audio
-    - We decode, run through pipeline, and send back audio
+    Architecture:
+    - Two concurrent tasks run during playback:
+      1. **Playback task**: streams TTS audio chunks to Twilio
+      2. **Listener task**: monitors incoming audio via VAD for barge-in
+    - When the listener detects speech (barge-in), it:
+      a. Sets the cancel_event → TTS generator + pipeline stop yielding
+      b. Sends a Twilio "clear" message → clears Twilio's audio buffer
+      c. Buffers the caller's audio for immediate STT processing
     """
+    from src.telephony.twilio_provider import TwilioProvider
+
     await websocket.accept()
-    stream_sid = None
-    session_id = None
+    stream_sid: str | None = None
+    session_id: str | None = None
     audio_buffer = bytearray()
     BUFFER_THRESHOLD = 16_000  # ~1 second of 8kHz mulaw
+
+    # State for concurrent playback/listen
+    playback_task: asyncio.Task | None = None
+    incoming_queue: asyncio.Queue[bytes] = asyncio.Queue()
+
+    async def _playback_and_listen(
+        sid: str, audio_chunk: bytes, ws: WebSocket, s_sid: str
+    ) -> None:
+        """Run pipeline processing with concurrent barge-in detection.
+
+        While the pipeline yields TTS audio and we send it to Twilio,
+        we also drain incoming_queue for VAD checks. If VAD fires barge-in,
+        we cancel TTS, clear Twilio buffer, and return so the main loop
+        can process the caller's new input.
+        """
+        barge_mgr = pipeline.get_barge_in_manager(sid)
+        cancel_event = barge_mgr.cancel_event
+        barge_mgr.start_playback()
+
+        async def _send_pipeline_audio():
+            async for response_audio in pipeline.process_audio_turn(
+                sid, audio_chunk, cancel_event=cancel_event
+            ):
+                if cancel_event.is_set():
+                    return
+                msg = TwilioProvider.encode_media_message(response_audio, s_sid)
+                await ws.send_text(msg)
+            # Natural end of playback
+            barge_mgr.stop_playback()
+
+        async def _monitor_incoming():
+            while barge_mgr.is_playing:
+                try:
+                    frame = await asyncio.wait_for(incoming_queue.get(), timeout=0.05)
+                except asyncio.TimeoutError:
+                    continue
+                result = barge_mgr.feed_audio(frame)
+                if result.is_barge_in:
+                    logger.info("barge_in_detected", session=sid, rms=result.rms_energy)
+                    # Clear Twilio's playback buffer immediately
+                    clear_msg = TwilioProvider.clear_audio_message(s_sid)
+                    await ws.send_text(clear_msg)
+                    return
+
+        # Run both concurrently — when either finishes, cancel the other
+        send_task = asyncio.create_task(_send_pipeline_audio())
+        monitor_task = asyncio.create_task(_monitor_incoming())
+
+        done, pending = await asyncio.wait(
+            {send_task, monitor_task}, return_when=asyncio.FIRST_COMPLETED
+        )
+        for t in pending:
+            t.cancel()
+            try:
+                await t
+            except asyncio.CancelledError:
+                pass
+
+        # If barge-in occurred, process the buffered audio as a new turn
+        if barge_mgr.was_interrupted:
+            buffered = barge_mgr.handle_barge_in()
+            if buffered:
+                logger.info("processing_barge_in_audio", session=sid, bytes=len(buffered))
+                # Recursive-ish: process the interrupted user's audio
+                # (no barge-in nesting — cancel_event is fresh)
+                barge_mgr.start_playback()
+                async for response_audio in pipeline.process_audio_turn(
+                    sid, buffered, cancel_event=barge_mgr.cancel_event
+                ):
+                    msg = TwilioProvider.encode_media_message(response_audio, s_sid)
+                    await ws.send_text(msg)
+                barge_mgr.stop_playback()
 
     try:
         while True:
@@ -200,34 +279,42 @@ async def twilio_media_stream(websocket: WebSocket):
 
             elif event == "start":
                 stream_sid = data["start"]["streamSid"]
-                # Create a new interview session for this call
                 session = pipeline.create_session(is_outbound=False)
                 session_id = session.session_id
                 logger.info("twilio_stream_started", stream_sid=stream_sid, session=session_id)
 
-                # Send greeting audio
-                greeting_text = pipeline.get_greeting_text(session_id)
-                greeting_audio = await pipeline._tts.synthesize(greeting_text)
-                from src.telephony.twilio_provider import TwilioProvider
-                msg = TwilioProvider.encode_media_message(greeting_audio, stream_sid)
-                await websocket.send_text(msg)
+                # Send greeting (with barge-in support)
+                barge_mgr = pipeline.get_barge_in_manager(session_id)
+                barge_mgr.start_playback()
+                async for chunk in pipeline.get_greeting_audio(
+                    session_id, cancel_event=barge_mgr.cancel_event
+                ):
+                    msg = TwilioProvider.encode_media_message(chunk, stream_sid)
+                    await websocket.send_text(msg)
+                barge_mgr.stop_playback()
 
             elif event == "media" and session_id:
-                from src.telephony.twilio_provider import TwilioProvider
                 payload = data["media"]["payload"]
                 audio_bytes = TwilioProvider.decode_media_payload(payload)
+
+                # If a playback task is running, feed audio to VAD via queue
+                if playback_task and not playback_task.done():
+                    await incoming_queue.put(audio_bytes)
+                    continue
+
+                # Otherwise buffer for next STT turn
                 audio_buffer.extend(audio_bytes)
 
                 if len(audio_buffer) >= BUFFER_THRESHOLD:
                     chunk = bytes(audio_buffer)
                     audio_buffer.clear()
 
-                    # Process through pipeline
-                    async for response_audio in pipeline.process_audio_turn(
-                        session_id, chunk
-                    ):
-                        msg = TwilioProvider.encode_media_message(response_audio, stream_sid)
-                        await websocket.send_text(msg)
+                    # Launch playback + barge-in listener concurrently
+                    playback_task = asyncio.create_task(
+                        _playback_and_listen(
+                            session_id, chunk, websocket, stream_sid
+                        )
+                    )
 
             elif event == "stop":
                 logger.info("twilio_stream_stopped", stream_sid=stream_sid)
@@ -235,3 +322,6 @@ async def twilio_media_stream(websocket: WebSocket):
 
     except WebSocketDisconnect:
         logger.info("twilio_stream_disconnected", stream_sid=stream_sid)
+    finally:
+        if playback_task and not playback_task.done():
+            playback_task.cancel()
