@@ -28,23 +28,25 @@ def build_agent_config(settings: Settings, is_outbound: bool = False) -> dict[st
 
     Returns:
         Configuration dict ready for ElevenLabs API
+
+    Note:
+        ElevenLabs API uses 'conversation_config' (not 'conversational_config').
+        English agents must use 'eleven_turbo_v2' or 'eleven_flash_v2' TTS models.
     """
     return {
-        "conversational_config": _build_conversational_config(settings, is_outbound),
+        "conversation_config": _build_conversation_config_section(settings, is_outbound),
         "platform_settings": _build_platform_settings(settings),
         "name": "Buyer Brief Agent",
-        "tags": ["buyer-agency", "australia", "residential"],
     }
 
 
-def _build_conversational_config(settings: Settings, is_outbound: bool) -> dict[str, Any]:
-    """Build the conversational configuration section."""
+def _build_conversation_config_section(settings: Settings, is_outbound: bool) -> dict[str, Any]:
+    """Build the conversation_config section for the ElevenLabs API."""
     return {
         "agent": _build_agent_section(settings, is_outbound),
-        "asr": _build_asr_config(),
         "tts": _build_tts_config(settings),
         "turn": _build_turn_config(),
-        "conversation": _build_conversation_config(settings),
+        "conversation": _build_conversation_limits(settings),
     }
 
 
@@ -223,13 +225,20 @@ def _build_asr_config() -> dict[str, Any]:
 
 
 def _build_tts_config(settings: Settings) -> dict[str, Any]:
-    """Build the TTS (text-to-speech) configuration."""
+    """Build the TTS (text-to-speech) configuration.
+
+    Note: English agents must use 'eleven_turbo_v2' or 'eleven_flash_v2'
+    (not the _5 suffix versions).
+    """
+    # Ensure we use a valid TTS model for English agents
+    model_id = settings.elevenlabs_tts_model
+    if model_id in ("eleven_turbo_v2_5", "eleven_flash_v2_5"):
+        model_id = model_id.replace("_5", "")  # Use v2 instead of v2_5
+
     config = {
-        "model_id": settings.elevenlabs_tts_model,
+        "model_id": model_id,
         "stability": settings.elevenlabs_voice_stability,
         "similarity_boost": settings.elevenlabs_similarity_boost,
-        "speed": settings.elevenlabs_speech_speed,
-        "optimize_streaming_latency": 3,  # Balance quality and latency
     }
 
     if settings.elevenlabs_voice_id:
@@ -248,7 +257,7 @@ def _build_turn_config() -> dict[str, Any]:
     }
 
 
-def _build_conversation_config(settings: Settings) -> dict[str, Any]:
+def _build_conversation_limits(settings: Settings) -> dict[str, Any]:
     """Build the conversation limits configuration."""
     return {
         "max_duration_seconds": settings.max_conversation_duration,

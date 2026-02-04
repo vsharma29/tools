@@ -17,13 +17,13 @@ class Settings(BaseSettings):
 
     # --- Voice Configuration ---
     elevenlabs_voice_id: str = ""  # Empty = use default voice
-    elevenlabs_tts_model: str = "eleven_turbo_v2_5"
+    elevenlabs_tts_model: str = "eleven_turbo_v2"  # Must use v2 (not v2_5) for English agents
     elevenlabs_voice_stability: float = Field(0.5, ge=0, le=1)
     elevenlabs_similarity_boost: float = Field(0.75, ge=0, le=1)
     elevenlabs_speech_speed: float = Field(1.0, ge=0.7, le=1.3)
 
     # --- LLM Configuration ---
-    elevenlabs_llm_model: str = "claude-3-5-sonnet"
+    elevenlabs_llm_model: str = "gpt-4o-mini"  # Fast and cost-effective for conversational AI
     elevenlabs_llm_temperature: float = Field(0.3, ge=0, le=1)
 
     # --- Twilio Integration ---
