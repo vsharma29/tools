@@ -45,15 +45,16 @@ def test_build_agent_config_structure():
     )
     config = build_agent_config(settings)
 
-    assert "conversational_config" in config
+    # ElevenLabs API uses 'conversation_config' (not 'conversational_config')
+    assert "conversation_config" in config
     assert "platform_settings" in config
     assert "name" in config
 
-    conv_config = config["conversational_config"]
+    conv_config = config["conversation_config"]
     assert "agent" in conv_config
-    assert "asr" in conv_config
     assert "tts" in conv_config
     assert "turn" in conv_config
+    assert "conversation" in conv_config
 
 
 def test_tools_include_save_brief_when_webhook_configured():
