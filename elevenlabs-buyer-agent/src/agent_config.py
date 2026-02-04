@@ -57,10 +57,10 @@ def _build_agent_section(settings: Settings, is_outbound: bool) -> dict[str, Any
     agent_config = {
         "first_message": first_message,
         "language": "en",
-        "dynamic_variables": [
-            {"name": "prospect_name", "value": "the prospect"},
-            {"name": "agency_name", "value": settings.agency_name},
-        ],
+        "dynamic_variables": {
+            "prospect_name": "the prospect",
+            "agency_name": settings.agency_name,
+        },
         "prompt": {
             "prompt": get_system_prompt(settings.agency_name),
             "llm": settings.elevenlabs_llm_model,
