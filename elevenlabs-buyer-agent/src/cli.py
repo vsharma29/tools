@@ -1,59 +1,85 @@
-"""CLI tool for managing the ElevenLabs Buyer Agent.
+"""CLI tool for managing the ElevenLabs Voice Agents.
 
 Commands:
-    buyer-agent deploy          Create or update the agent
-    buyer-agent twilio-setup    Import Twilio phone number
-    buyer-agent call            Initiate an outbound call
-    buyer-agent list-calls      List recent conversations
-    buyer-agent test            Run a simulation test
-    buyer-agent voices          List available voices
+    # Buyer Brief Agent
+    buyer-agent deploy              Deploy buyer brief agent
+    buyer-agent update              Update existing buyer brief agent
+
+    # Sales Associate Agent
+    buyer-agent deploy-sales        Deploy sales associate agent
+
+    # Phone & Twilio
+    buyer-agent twilio-setup        Import Twilio phone number
+    buyer-agent list-numbers        List registered phone numbers
+
+    # Outbound Calls
+    buyer-agent call                Single outbound call
+    buyer-agent campaign            Run outbound campaign from CSV
+
+    # Conversations
+    buyer-agent list-calls          List recent conversations
+    buyer-agent get-call            Get conversation details
+
+    # Utilities
+    buyer-agent voices              List available voices
+    buyer-agent show-config         Show agent configuration
 """
 
 from __future__ import annotations
 
 import asyncio
 import json
+from pathlib import Path
 from typing import Optional
 
 import typer
 from rich.console import Console
 from rich.table import Table
 from rich.panel import Panel
+from rich.progress import Progress, SpinnerColumn, TextColumn
 
 from config.settings import get_settings
 from .api_client import ElevenLabsClient
 from .agent_config import build_agent_config
-from .workflow import build_workflow_config
+from .sales_agent_config import build_sales_agent_config
+from .lead_manager import LeadManager, Lead, create_sample_csv
 
 app = typer.Typer(
     name="buyer-agent",
-    help="Manage the ElevenLabs Buyer Brief Voice Agent",
+    help="Manage ElevenLabs Voice Agents for Buyer Agency",
 )
 console = Console()
 
 
 # ------------------------------------------------------------------
-# Deploy Commands
+# Buyer Brief Agent Commands
 # ------------------------------------------------------------------
 
 @app.command()
 def deploy(
-    use_workflow: bool = typer.Option(
-        False,
-        "--workflow",
-        "-w",
-        help="Use workflow with subagents instead of single agent",
-    ),
     update_id: Optional[str] = typer.Option(
         None,
         "--update",
         "-u",
         help="Update existing agent by ID instead of creating new",
     ),
+    voice_id: Optional[str] = typer.Option(
+        None,
+        "--voice",
+        "-v",
+        help="Override voice ID",
+    ),
+    llm_model: Optional[str] = typer.Option(
+        None,
+        "--model",
+        "-m",
+        help="Override LLM model (e.g., claude-3-5-sonnet)",
+    ),
 ):
-    """Deploy the buyer brief agent to ElevenLabs.
+    """Deploy the Buyer Brief agent to ElevenLabs.
 
-    Creates a new agent or updates an existing one with the current configuration.
+    This agent conducts phone interviews to gather comprehensive buyer briefs.
+    It asks about investment vs owner-occupier status first, then relevant questions.
     """
     settings = get_settings()
 
@@ -61,34 +87,94 @@ def deploy(
         console.print("[red]Error:[/red] ELEVENLABS_API_KEY not set")
         raise typer.Exit(1)
 
+    # Apply overrides
+    if voice_id:
+        settings.elevenlabs_voice_id = voice_id
+    if llm_model:
+        settings.elevenlabs_llm_model = llm_model
+
     async def _deploy():
         async with ElevenLabsClient(settings) as client:
-            # Build configuration
-            if use_workflow:
-                config = build_workflow_config(settings)
-                console.print("[blue]Building workflow configuration with subagents...[/blue]")
-            else:
-                config = build_agent_config(settings)
-                console.print("[blue]Building single-agent configuration...[/blue]")
+            config = build_agent_config(settings)
+            console.print("[blue]Building Buyer Brief agent configuration...[/blue]")
 
-            # Create or update
             if update_id:
                 console.print(f"[yellow]Updating agent {update_id}...[/yellow]")
                 result = await client.update_agent(update_id, config)
                 agent_id = update_id
             else:
-                console.print("[green]Creating new agent...[/green]")
+                console.print("[green]Creating new Buyer Brief agent...[/green]")
                 result = await client.create_agent(config)
                 agent_id = result.get("agent_id")
 
             console.print(Panel(
-                f"[green]Agent deployed successfully![/green]\n\n"
+                f"[green]Buyer Brief Agent deployed![/green]\n\n"
                 f"Agent ID: [bold]{agent_id}[/bold]\n"
-                f"Name: {config.get('name', 'Buyer Brief Agent')}\n"
+                f"Name: Buyer Brief Agent\n"
                 f"LLM: {settings.elevenlabs_llm_model}\n"
                 f"Voice: {settings.elevenlabs_voice_id or 'default'}\n\n"
-                f"[dim]Save the Agent ID for future commands.[/dim]",
-                title="Deployment Complete",
+                f"[dim]This agent interviews prospects to build buyer briefs.[/dim]",
+                title="Buyer Brief Agent Deployed",
+            ))
+
+            return agent_id
+
+    agent_id = asyncio.run(_deploy())
+    return agent_id
+
+
+@app.command("deploy-sales")
+def deploy_sales(
+    update_id: Optional[str] = typer.Option(
+        None,
+        "--update",
+        "-u",
+        help="Update existing sales agent by ID",
+    ),
+    voice_id: Optional[str] = typer.Option(
+        None,
+        "--voice",
+        "-v",
+        help="Override voice ID for sales agent",
+    ),
+):
+    """Deploy the Sales Associate agent to ElevenLabs.
+
+    This agent makes follow-up calls to leads who have shown interest in properties.
+    It's designed for outbound campaigns from CSV, CRM, or interest feeds.
+    """
+    settings = get_settings()
+
+    if not settings.elevenlabs_api_key:
+        console.print("[red]Error:[/red] ELEVENLABS_API_KEY not set")
+        raise typer.Exit(1)
+
+    if voice_id:
+        settings.sales_voice_id = voice_id
+
+    async def _deploy():
+        async with ElevenLabsClient(settings) as client:
+            config = build_sales_agent_config(settings)
+            console.print("[blue]Building Sales Associate agent configuration...[/blue]")
+
+            if update_id:
+                console.print(f"[yellow]Updating sales agent {update_id}...[/yellow]")
+                result = await client.update_agent(update_id, config)
+                agent_id = update_id
+            else:
+                console.print("[green]Creating new Sales Associate agent...[/green]")
+                result = await client.create_agent(config)
+                agent_id = result.get("agent_id")
+
+            console.print(Panel(
+                f"[green]Sales Associate Agent deployed![/green]\n\n"
+                f"Agent ID: [bold]{agent_id}[/bold]\n"
+                f"Name: Sales Associate Agent\n"
+                f"LLM: {settings.sales_llm_model or settings.elevenlabs_llm_model}\n"
+                f"Voice: {settings.sales_voice_id or settings.elevenlabs_voice_id or 'default'}\n\n"
+                f"[dim]This agent follows up with leads from property enquiries.[/dim]\n"
+                f"[dim]Use 'buyer-agent campaign' to run outbound calls.[/dim]",
+                title="Sales Associate Agent Deployed",
             ))
 
             return agent_id
@@ -151,7 +237,7 @@ def delete_agent(
 
 
 # ------------------------------------------------------------------
-# Twilio Commands
+# Twilio / Phone Number Commands
 # ------------------------------------------------------------------
 
 @app.command("twilio-setup")
@@ -167,6 +253,7 @@ def twilio_setup(
     """Import Twilio phone number and connect to agent.
 
     The phone number is read from TWILIO_PHONE_NUMBER environment variable.
+    Inbound calls to this number will be handled by the specified agent.
     """
     settings = get_settings()
 
@@ -189,9 +276,9 @@ def twilio_setup(
                 f"[green]Phone number imported![/green]\n\n"
                 f"Number: {settings.twilio_phone_number}\n"
                 f"Label: {label}\n"
-                f"Number ID: {result.get('phone_number_id', 'N/A')}\n"
-                f"Capabilities: {result.get('capabilities', {})}\n\n"
-                f"[dim]Inbound calls to this number will now be handled by the agent.[/dim]",
+                f"Number ID: {result.get('phone_number_id', 'N/A')}\n\n"
+                f"[bold]Inbound calls[/bold] to this number will be handled by agent {agent_id}.\n"
+                f"[bold]Outbound calls[/bold] can use this number with 'buyer-agent call'.",
                 title="Twilio Setup Complete",
             ))
 
@@ -231,7 +318,7 @@ def list_numbers():
 
 
 # ------------------------------------------------------------------
-# Call Commands
+# Outbound Call Commands
 # ------------------------------------------------------------------
 
 @app.command()
@@ -239,25 +326,35 @@ def call(
     agent_id: str = typer.Argument(..., help="Agent ID"),
     to_number: str = typer.Argument(..., help="Phone number to call (e.g., +61400000000)"),
     from_number_id: str = typer.Argument(..., help="Phone number ID to call from"),
-    prospect_name: str = typer.Option("", "--name", "-n", help="Prospect name for greeting"),
+    prospect_name: str = typer.Option("", "--name", "-n", help="Prospect name"),
+    property_address: str = typer.Option("", "--property", "-p", help="Property address (for sales follow-up)"),
+    interest_source: str = typer.Option("", "--source", "-s", help="Interest source (e.g., 'Open Home')"),
 ):
-    """Initiate an outbound call to a prospect."""
+    """Initiate a single outbound call to a prospect.
+
+    Use this for one-off calls. For bulk outbound, use 'buyer-agent campaign'.
+    """
     settings = get_settings()
 
     async def _call():
         async with ElevenLabsClient(settings) as client:
             console.print(f"[blue]Calling {to_number}...[/blue]")
 
-            variables = {}
+            variables = {
+                "agency_name": settings.agency_name,
+            }
             if prospect_name:
                 variables["prospect_name"] = prospect_name
-            variables["agency_name"] = settings.agency_name
+            if property_address:
+                variables["property_address"] = property_address
+            if interest_source:
+                variables["interest_source"] = interest_source
 
             result = await client.initiate_outbound_call(
                 agent_id=agent_id,
                 to_number=to_number,
                 from_number_id=from_number_id,
-                custom_variables=variables if variables else None,
+                custom_variables=variables,
             )
 
             console.print(Panel(
@@ -270,6 +367,129 @@ def call(
 
     asyncio.run(_call())
 
+
+@app.command()
+def campaign(
+    agent_id: str = typer.Argument(..., help="Agent ID (use Sales Associate for follow-ups)"),
+    csv_file: Path = typer.Argument(..., help="CSV file with leads"),
+    from_number_id: str = typer.Argument(..., help="Phone number ID to call from"),
+    dry_run: bool = typer.Option(False, "--dry-run", "-d", help="Preview without calling"),
+    delay: int = typer.Option(30, "--delay", help="Seconds between calls"),
+    output: Optional[Path] = typer.Option(None, "--output", "-o", help="Output results CSV"),
+):
+    """Run an outbound calling campaign from a CSV file.
+
+    CSV format: name, phone, email, property_address, interest_source, enquiry_date, notes
+
+    Example:
+        buyer-agent campaign agent_xxx leads.csv number_yyy --delay 60
+    """
+    settings = get_settings()
+
+    if not csv_file.exists():
+        console.print(f"[red]Error:[/red] CSV file not found: {csv_file}")
+        raise typer.Exit(1)
+
+    # Load leads
+    manager = LeadManager(settings)
+    loaded = manager.load_from_csv(csv_file)
+    console.print(f"[green]Loaded {loaded} leads from {csv_file}[/green]")
+
+    leads = manager.get_pending_leads()
+    console.print(f"[blue]{len(leads)} leads ready to call[/blue]")
+
+    if dry_run:
+        table = Table(title="Campaign Preview (Dry Run)")
+        table.add_column("Name", style="green")
+        table.add_column("Phone", style="cyan")
+        table.add_column("Property")
+        table.add_column("Source")
+        table.add_column("Days Since")
+
+        for lead in leads[:20]:
+            table.add_row(
+                lead.name,
+                lead.phone,
+                lead.property_address[:30] + "..." if len(lead.property_address) > 30 else lead.property_address,
+                lead.interest_source,
+                str(lead.days_since_enquiry) if lead.enquiry_date else "-",
+            )
+
+        console.print(table)
+        if len(leads) > 20:
+            console.print(f"[dim]... and {len(leads) - 20} more[/dim]")
+        console.print("\n[yellow]Dry run - no calls made. Remove --dry-run to execute.[/yellow]")
+        return
+
+    # Run campaign
+    async def _campaign():
+        async with ElevenLabsClient(settings) as client:
+            with Progress(
+                SpinnerColumn(),
+                TextColumn("[progress.description]{task.description}"),
+                console=console,
+            ) as progress:
+                task = progress.add_task(f"Calling {len(leads)} leads...", total=len(leads))
+
+                for i, lead in enumerate(leads):
+                    try:
+                        progress.update(task, description=f"Calling {lead.name} ({i+1}/{len(leads)})...")
+
+                        variables = lead.to_dynamic_variables()
+                        variables["agency_name"] = settings.agency_name
+
+                        result = await client.initiate_outbound_call(
+                            agent_id=agent_id,
+                            to_number=lead.phone,
+                            from_number_id=from_number_id,
+                            custom_variables=variables,
+                        )
+
+                        lead.status = "called"
+                        console.print(f"[green]✓[/green] Called {lead.name}: {result.get('call_id', 'OK')}")
+
+                    except Exception as e:
+                        lead.status = "failed"
+                        console.print(f"[red]✗[/red] Failed {lead.name}: {e}")
+
+                    progress.advance(task)
+
+                    # Delay between calls
+                    if i < len(leads) - 1:
+                        await asyncio.sleep(delay)
+
+        # Export results
+        if output:
+            manager.export_results(output)
+            console.print(f"\n[green]Results exported to {output}[/green]")
+
+    asyncio.run(_campaign())
+
+    # Summary
+    called = sum(1 for l in leads if l.status == "called")
+    failed = sum(1 for l in leads if l.status == "failed")
+    console.print(Panel(
+        f"Campaign complete!\n\n"
+        f"Total: {len(leads)}\n"
+        f"[green]Called: {called}[/green]\n"
+        f"[red]Failed: {failed}[/red]",
+        title="Campaign Summary",
+    ))
+
+
+@app.command("create-sample-csv")
+def create_sample(
+    output: Path = typer.Argument(Path("sample_leads.csv"), help="Output file path"),
+):
+    """Create a sample CSV file for lead imports."""
+    create_sample_csv(output)
+    console.print(f"[green]Sample CSV created: {output}[/green]")
+    console.print("[dim]Edit this file with your leads, then use 'buyer-agent campaign'.[/dim]")
+
+
+# ------------------------------------------------------------------
+# Conversation Commands
+# ------------------------------------------------------------------
 
 @app.command("list-calls")
 def list_calls(
@@ -344,70 +564,39 @@ def get_call(
 
 
 # ------------------------------------------------------------------
-# Testing Commands
+# Utility Commands
 # ------------------------------------------------------------------
 
 @app.command()
-def test(
-    agent_id: str = typer.Argument(..., help="Agent ID to test"),
-    scenario: str = typer.Option(
-        "A first-time buyer looking for a 3-bedroom house in Sydney's western suburbs with a budget of $800k",
-        "--scenario",
-        "-s",
-        help="Test scenario description",
-    ),
+def voices(
+    search: Optional[str] = typer.Option(None, "--search", "-s", help="Search by name or accent"),
 ):
-    """Run a simulation test against the agent."""
-    settings = get_settings()
-
-    async def _test():
-        async with ElevenLabsClient(settings) as client:
-            console.print(f"[blue]Running simulation...[/blue]")
-            console.print(f"Scenario: {scenario}\n")
-
-            result = await client.run_simulation(
-                agent_id=agent_id,
-                scenario=scenario,
-                evaluation_criteria=[
-                    "brief_completeness",
-                    "customer_satisfaction",
-                    "stayed_on_topic",
-                ],
-            )
-
-            console.print(Panel(
-                f"Simulation ID: {result.get('simulation_id')}\n"
-                f"Status: {result.get('status')}\n\n"
-                f"[bold]Evaluations:[/bold]\n"
-                f"{json.dumps(result.get('evaluations', {}), indent=2)}",
-                title="Simulation Results",
-            ))
-
-    asyncio.run(_test())
-
-
-# ------------------------------------------------------------------
-# Voice Commands
-# ------------------------------------------------------------------
-
-@app.command()
-def voices():
-    """List available voices for the agent."""
+    """List available voices for the agents."""
     settings = get_settings()
 
     async def _list():
         async with ElevenLabsClient(settings) as client:
             voice_list = await client.list_voices()
 
+            # Filter if search provided
+            if search:
+                search_lower = search.lower()
+                voice_list = [
+                    v for v in voice_list
+                    if search_lower in v.get("name", "").lower()
+                    or search_lower in str(v.get("labels", {})).lower()
+                ]
+
             table = Table(title="Available Voices")
             table.add_column("Voice ID", style="cyan")
             table.add_column("Name", style="green")
             table.add_column("Category")
-            table.add_column("Labels")
+            table.add_column("Accent/Labels")
 
-            for voice in voice_list[:20]:  # Show first 20
+            for voice in voice_list[:30]:
                 labels = voice.get("labels", {})
-                label_str = ", ".join(f"{k}:{v}" for k, v in labels.items())
+                accent = labels.get("accent", "")
+                label_str = accent or ", ".join(f"{k}:{v}" for k, v in labels.items())
 
                 table.add_row(
                     voice.get("voice_id", ""),
@@ -417,21 +606,32 @@ def voices():
                 )
 
             console.print(table)
-            console.print(f"\n[dim]Showing 20 of {len(voice_list)} voices. "
-                         f"Set ELEVENLABS_VOICE_ID in .env to use a specific voice.[/dim]")
+
+            if len(voice_list) > 30:
+                console.print(f"\n[dim]Showing 30 of {len(voice_list)} voices.[/dim]")
+
+            console.print("\n[dim]Tip: Use --search to filter (e.g., --search australian)[/dim]")
 
     asyncio.run(_list())
 
 
 @app.command()
-def show_config():
+def show_config(
+    agent_type: str = typer.Option("buyer", "--type", "-t", help="Agent type: buyer or sales"),
+):
     """Show the current agent configuration (for debugging)."""
     settings = get_settings()
-    config = build_agent_config(settings)
+
+    if agent_type == "sales":
+        config = build_sales_agent_config(settings)
+        title = "Sales Associate Configuration"
+    else:
+        config = build_agent_config(settings)
+        title = "Buyer Brief Configuration"
 
     console.print(Panel(
         json.dumps(config, indent=2, default=str),
-        title="Agent Configuration",
+        title=title,
     ))
 
 

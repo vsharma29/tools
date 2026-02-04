@@ -41,11 +41,32 @@ class Settings(BaseSettings):
     aws_access_key_id: str = ""
     aws_secret_access_key: str = ""
 
-    # --- Agent Settings ---
+    # --- Buyer Brief Agent Settings ---
     agency_name: str = "Your Buyer's Agency"
     max_conversation_duration: int = 900
     enable_recording: bool = True
     retention_days: int = 90
+
+    # --- Inbound Call Triggers ---
+    # Comma-separated list of phone numbers that can trigger the buyer brief agent
+    # Format: +61412345678,+61498765432 (E.164 format)
+    allowed_inbound_numbers: str = ""
+    # If True, any inbound call triggers the agent. If False, only allowed numbers.
+    allow_all_inbound: bool = True
+
+    # --- Sales Associate Agent Settings ---
+    sales_agent_id: str = ""  # ElevenLabs agent ID for sales associate
+    sales_voice_id: str = ""  # Different voice for sales associate
+    sales_llm_model: str = "claude-3-5-sonnet"
+
+    # --- CRM Integration ---
+    crm_api_url: str = ""
+    crm_api_key: str = ""
+    crm_type: str = ""  # salesforce, hubspot, zoho, custom
+
+    # --- Lead Source Configuration ---
+    leads_csv_path: str = ""  # Path to CSV file with leads
+    leads_webhook_url: str = ""  # Webhook to receive new leads
 
     model_config = {"env_file": ".env", "env_file_encoding": "utf-8"}
 
@@ -60,6 +81,19 @@ class Settings(BaseSettings):
     @property
     def has_s3(self) -> bool:
         return bool(self.aws_access_key_id and self.aws_secret_access_key)
+
+    @property
+    def allowed_inbound_list(self) -> list[str]:
+        """Parse allowed inbound numbers into a list."""
+        if not self.allowed_inbound_numbers:
+            return []
+        return [n.strip() for n in self.allowed_inbound_numbers.split(",") if n.strip()]
+
+    def is_inbound_allowed(self, phone_number: str) -> bool:
+        """Check if an inbound phone number is allowed to trigger the agent."""
+        if self.allow_all_inbound:
+            return True
+        return phone_number in self.allowed_inbound_list
 
 
 @lru_cache
