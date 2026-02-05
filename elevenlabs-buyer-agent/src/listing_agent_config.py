@@ -67,9 +67,9 @@ def _build_agent_section(settings: Settings, agency_name: str) -> dict[str, Any]
         },
         "prompt": {
             "prompt": get_listing_agent_system_prompt(agency_name),
-            "llm": "claude-3-5-sonnet",
-            "temperature": 0.8,  # Higher for more natural, varied responses
-            "max_tokens": 400,  # Shorter responses for natural conversation
+            "llm": "gpt-4o",  # Best for natural conversation
+            "temperature": 0.9,  # Higher for more natural variation
+            "max_tokens": 150,  # Short responses only
         },
         "tools": _build_tools(settings),
     }
