@@ -1,12 +1,15 @@
 """CLI tool for managing the ElevenLabs Voice Agents.
 
 Commands:
-    # Buyer Brief Agent
+    # Buyer Brief Agent (Buyer Agency)
     buyer-agent deploy              Deploy buyer brief agent
     buyer-agent update              Update existing buyer brief agent
 
-    # Sales Associate Agent
-    buyer-agent deploy-sales        Deploy sales associate agent
+    # Sales Associate Agent (Buyer Agency)
+    buyer-agent deploy-sales        Deploy sales associate agent for buyer follow-ups
+
+    # Listing Agent (Listing Agency - Seller's Side)
+    buyer-agent deploy-listing      Deploy listing agent for open home follow-ups
 
     # Phone & Twilio
     buyer-agent twilio-setup        Import Twilio phone number
@@ -42,11 +45,12 @@ from config.settings import get_settings
 from .api_client import ElevenLabsClient
 from .agent_config import build_agent_config
 from .sales_agent_config import build_sales_agent_config
+from .listing_agent_config import build_listing_agent_config
 from .lead_manager import LeadManager, Lead, create_sample_csv
 
 app = typer.Typer(
     name="buyer-agent",
-    help="Manage ElevenLabs Voice Agents for Buyer Agency",
+    help="Manage ElevenLabs Voice Agents for Real Estate",
 )
 console = Console()
 
@@ -175,6 +179,76 @@ def deploy_sales(
                 f"[dim]This agent follows up with leads from property enquiries.[/dim]\n"
                 f"[dim]Use 'buyer-agent campaign' to run outbound calls.[/dim]",
                 title="Sales Associate Agent Deployed",
+            ))
+
+            return agent_id
+
+    agent_id = asyncio.run(_deploy())
+    return agent_id
+
+
+@app.command("deploy-listing")
+def deploy_listing(
+    update_id: Optional[str] = typer.Option(
+        None,
+        "--update",
+        "-u",
+        help="Update existing listing agent by ID",
+    ),
+    voice_id: Optional[str] = typer.Option(
+        "LqLLaHt3jxALsSIqaKoa",  # Antonio - default
+        "--voice",
+        "-v",
+        help="Voice ID (default: Antonio)",
+    ),
+    agency_name: str = typer.Option(
+        "Your Real Estate Agency",
+        "--agency",
+        "-a",
+        help="Listing agency name",
+    ),
+):
+    """Deploy the Listing Agent for open home follow-ups.
+
+    This agent calls potential buyers who attended open homes on behalf of the
+    listing agency (seller's agent). It gathers feedback on interest level,
+    perceived value, and offers private inspections.
+
+    Uses Antonio voice by default with human-like voice settings.
+    """
+    settings = get_settings()
+
+    if not settings.elevenlabs_api_key:
+        console.print("[red]Error:[/red] ELEVENLABS_API_KEY not set")
+        raise typer.Exit(1)
+
+    async def _deploy():
+        async with ElevenLabsClient(settings) as client:
+            config = build_listing_agent_config(settings, voice_id=voice_id, agency_name=agency_name)
+            console.print("[blue]Building Listing Agent configuration...[/blue]")
+
+            if update_id:
+                console.print(f"[yellow]Updating listing agent {update_id}...[/yellow]")
+                result = await client.update_agent(update_id, config)
+                agent_id = update_id
+            else:
+                console.print("[green]Creating new Listing Agent...[/green]")
+                result = await client.create_agent(config)
+                agent_id = result.get("agent_id")
+
+            console.print(Panel(
+                f"[green]Listing Agent deployed![/green]\n\n"
+                f"Agent ID: [bold]{agent_id}[/bold]\n"
+                f"Name: Listing Agent - Open Home Follow-up\n"
+                f"Agency: {agency_name}\n"
+                f"Voice: Antonio ({voice_id})\n"
+                f"LLM: claude-3-5-sonnet\n\n"
+                f"[bold]Voice Settings (Human-like):[/bold]\n"
+                f"  Stability: 0.35 (expressive)\n"
+                f"  Similarity: 0.80 (consistent)\n"
+                f"  Turn Eagerness: patient (doesn't interrupt)\n\n"
+                f"[dim]This agent follows up with open home attendees.[/dim]",
+                title="Listing Agent Deployed",
             ))
 
             return agent_id
@@ -617,7 +691,7 @@ def voices(
 
 @app.command()
 def show_config(
-    agent_type: str = typer.Option("buyer", "--type", "-t", help="Agent type: buyer or sales"),
+    agent_type: str = typer.Option("buyer", "--type", "-t", help="Agent type: buyer, sales, or listing"),
 ):
     """Show the current agent configuration (for debugging)."""
     settings = get_settings()
@@ -625,6 +699,9 @@ def show_config(
     if agent_type == "sales":
         config = build_sales_agent_config(settings)
         title = "Sales Associate Configuration"
+    elif agent_type == "listing":
+        config = build_listing_agent_config(settings)
+        title = "Listing Agent Configuration"
     else:
         config = build_agent_config(settings)
         title = "Buyer Brief Configuration"
