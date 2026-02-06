@@ -1,55 +1,272 @@
-// Buyer Brief Form JavaScript
+// Buyer Brief Website JavaScript
 
 document.addEventListener('DOMContentLoaded', function() {
-    const form = document.getElementById('buyerBriefForm');
-    const successMessage = document.getElementById('successMessage');
+    // ============================================
+    // NAVIGATION
+    // ============================================
 
-    // Toggle sections based on purchase purpose
-    const purchasePurposeRadios = document.querySelectorAll('input[name="purchasePurpose"]');
-    const investmentSection = document.getElementById('investmentSection');
-    const lifestyleSection = document.getElementById('lifestyleSection');
+    const navbar = document.getElementById('navbar');
+    const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+    const mobileMenu = document.getElementById('mobileMenu');
 
-    purchasePurposeRadios.forEach(radio => {
-        radio.addEventListener('change', function() {
-            if (this.value === 'investment' || this.value === 'smsf') {
-                investmentSection.style.display = 'block';
-                lifestyleSection.style.display = 'none';
-            } else {
-                investmentSection.style.display = 'none';
-                lifestyleSection.style.display = 'block';
+    // Navbar scroll effect
+    window.addEventListener('scroll', function() {
+        if (window.scrollY > 50) {
+            navbar.classList.add('scrolled');
+        } else {
+            navbar.classList.remove('scrolled');
+        }
+    });
+
+    // Mobile menu toggle
+    if (mobileMenuBtn) {
+        mobileMenuBtn.addEventListener('click', function() {
+            mobileMenu.classList.toggle('active');
+        });
+
+        // Close mobile menu when clicking a link
+        mobileMenu.querySelectorAll('a').forEach(link => {
+            link.addEventListener('click', () => {
+                mobileMenu.classList.remove('active');
+            });
+        });
+    }
+
+    // ============================================
+    // SCROLL ANIMATIONS
+    // ============================================
+
+    const animateOnScroll = () => {
+        const elements = document.querySelectorAll('.animate-on-scroll');
+
+        elements.forEach(element => {
+            const elementTop = element.getBoundingClientRect().top;
+            const windowHeight = window.innerHeight;
+
+            if (elementTop < windowHeight - 100) {
+                element.classList.add('visible');
             }
         });
-    });
+    };
 
-    // Toggle first home buyer grants
-    const fhbRadios = document.querySelectorAll('input[name="firstHomeBuyer"]');
-    const fhbGrants = document.getElementById('fhbGrants');
+    window.addEventListener('scroll', animateOnScroll);
+    animateOnScroll(); // Run on load
 
-    fhbRadios.forEach(radio => {
-        radio.addEventListener('change', function() {
-            fhbGrants.style.display = this.value === 'yes' ? 'block' : 'none';
+    // ============================================
+    // NUMBER COUNTER ANIMATION
+    // ============================================
+
+    const animateCounters = () => {
+        const counters = document.querySelectorAll('.stat-number[data-count]');
+
+        counters.forEach(counter => {
+            if (counter.classList.contains('counted')) return;
+
+            const rect = counter.getBoundingClientRect();
+            if (rect.top < window.innerHeight && rect.bottom > 0) {
+                counter.classList.add('counted');
+
+                const target = parseInt(counter.getAttribute('data-count'));
+                const duration = 2000;
+                const start = performance.now();
+
+                const updateCounter = (currentTime) => {
+                    const elapsed = currentTime - start;
+                    const progress = Math.min(elapsed / duration, 1);
+
+                    // Easing function
+                    const easeOutQuart = 1 - Math.pow(1 - progress, 4);
+                    const current = Math.floor(target * easeOutQuart);
+
+                    counter.textContent = current;
+
+                    if (progress < 1) {
+                        requestAnimationFrame(updateCounter);
+                    } else {
+                        counter.textContent = target;
+                    }
+                };
+
+                requestAnimationFrame(updateCounter);
+            }
         });
-    });
+    };
 
-    // Toggle pet details
-    const petRadios = document.querySelectorAll('input[name="pets"]');
-    const petDetails = document.getElementById('petDetails');
+    window.addEventListener('scroll', animateCounters);
+    animateCounters(); // Run on load
 
-    petRadios.forEach(radio => {
-        radio.addEventListener('change', function() {
-            petDetails.style.display = this.value === 'yes' ? 'block' : 'none';
+    // ============================================
+    // SECTION NAVIGATION (Hero choices)
+    // ============================================
+
+    const hero = document.getElementById('hero');
+    const startSection = document.getElementById('start');
+    const voiceSection = document.getElementById('voiceSection');
+    const formSection = document.getElementById('formSection');
+    const successSection = document.getElementById('successSection');
+
+    // Get all elements that need to be hidden/shown
+    const mainSections = [
+        document.querySelector('.navbar'),
+        hero,
+        document.getElementById('how-it-works'),
+        document.getElementById('features'),
+        document.getElementById('team'),
+        startSection,
+        document.querySelector('footer')
+    ];
+
+    const hideMainSections = () => {
+        mainSections.forEach(section => {
+            if (section) section.style.display = 'none';
+        });
+    };
+
+    const showMainSections = () => {
+        mainSections.forEach(section => {
+            if (section) section.style.display = '';
+        });
+        voiceSection.style.display = 'none';
+        formSection.style.display = 'none';
+        successSection.style.display = 'none';
+    };
+
+    // Voice choice button (in start section)
+    const voiceChoiceBtn = document.querySelector('#voiceChoice .choice-btn');
+    if (voiceChoiceBtn) {
+        voiceChoiceBtn.addEventListener('click', function() {
+            hideMainSections();
+            voiceSection.style.display = 'flex';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+    }
+
+    // Form choice button (in start section)
+    const formChoiceBtn = document.querySelector('#formChoice .choice-btn');
+    if (formChoiceBtn) {
+        formChoiceBtn.addEventListener('click', function() {
+            hideMainSections();
+            formSection.style.display = 'block';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+    }
+
+    // Back buttons
+    const backFromVoice = document.getElementById('backFromVoice');
+    if (backFromVoice) {
+        backFromVoice.addEventListener('click', function() {
+            showMainSections();
+            document.getElementById('start').scrollIntoView({ behavior: 'smooth' });
+        });
+    }
+
+    const backFromForm = document.getElementById('backFromForm');
+    if (backFromForm) {
+        backFromForm.addEventListener('click', function() {
+            showMainSections();
+            document.getElementById('start').scrollIntoView({ behavior: 'smooth' });
+        });
+    }
+
+    // ============================================
+    // MULTI-STEP FORM
+    // ============================================
+
+    const form = document.getElementById('buyerBriefForm');
+    const progressBar = document.getElementById('progressBar');
+    const progressSteps = document.querySelectorAll('.progress-step');
+    const formSteps = document.querySelectorAll('.form-step');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const submitBtn = document.getElementById('submitBtn');
+
+    let currentStep = 1;
+    const totalSteps = formSteps.length;
+
+    const updateProgress = () => {
+        const progress = (currentStep / totalSteps) * 100;
+        progressBar.style.setProperty('--progress', `${progress}%`);
+
+        progressSteps.forEach((step, index) => {
+            step.classList.remove('active', 'completed');
+            if (index + 1 === currentStep) {
+                step.classList.add('active');
+            } else if (index + 1 < currentStep) {
+                step.classList.add('completed');
+            }
+        });
+    };
+
+    const showStep = (step) => {
+        formSteps.forEach((formStep, index) => {
+            formStep.classList.remove('active');
+            if (index + 1 === step) {
+                formStep.classList.add('active');
+            }
+        });
+
+        // Show/hide navigation buttons
+        prevBtn.style.visibility = step === 1 ? 'hidden' : 'visible';
+
+        if (step === totalSteps) {
+            nextBtn.style.display = 'none';
+            submitBtn.style.display = 'flex';
+        } else {
+            nextBtn.style.display = 'flex';
+            submitBtn.style.display = 'none';
+        }
+
+        updateProgress();
+    };
+
+    // Navigation buttons
+    if (nextBtn) {
+        nextBtn.addEventListener('click', () => {
+            if (currentStep < totalSteps) {
+                currentStep++;
+                showStep(currentStep);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        });
+    }
+
+    if (prevBtn) {
+        prevBtn.addEventListener('click', () => {
+            if (currentStep > 1) {
+                currentStep--;
+                showStep(currentStep);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        });
+    }
+
+    // Number selectors (+/- buttons)
+    document.querySelectorAll('.num-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const target = this.getAttribute('data-target');
+            const input = document.getElementById(target);
+            const isPlus = this.classList.contains('plus');
+            let value = parseInt(input.value) || 0;
+
+            if (isPlus) {
+                value = Math.min(value + 1, parseInt(input.max) || 10);
+            } else {
+                value = Math.max(value - 1, parseInt(input.min) || 0);
+            }
+
+            input.value = value;
         });
     });
 
     // Format currency inputs
-    const currencyInputs = ['budgetMin', 'budgetMax', 'stretchBudget', 'deposit'];
+    const currencyInputs = ['budgetMin', 'budgetMax', 'stretchBudget'];
     currencyInputs.forEach(id => {
         const input = document.getElementById(id);
         if (input) {
             input.addEventListener('blur', function() {
                 let value = this.value.replace(/[^0-9]/g, '');
                 if (value) {
-                    this.value = '$' + parseInt(value).toLocaleString();
+                    this.value = parseInt(value).toLocaleString();
                 }
             });
             input.addEventListener('focus', function() {
@@ -60,73 +277,89 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Form submission
-    form.addEventListener('submit', async function(e) {
-        e.preventDefault();
+    if (form) {
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
 
-        const submitBtn = form.querySelector('.submit-btn');
-        submitBtn.disabled = true;
-        submitBtn.classList.add('loading');
-        submitBtn.textContent = 'Submitting...';
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = `
+                <svg class="spinner" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 12a9 9 0 11-6.219-8.56"/>
+                </svg>
+                Submitting...
+            `;
 
-        // Collect form data
-        const formData = new FormData(form);
-        const data = {};
+            // Collect form data
+            const formData = new FormData(form);
+            const data = {};
 
-        // Process form data
-        for (let [key, value] of formData.entries()) {
-            if (data[key]) {
-                // Handle multiple values (checkboxes)
-                if (Array.isArray(data[key])) {
-                    data[key].push(value);
+            for (let [key, value] of formData.entries()) {
+                if (data[key]) {
+                    if (Array.isArray(data[key])) {
+                        data[key].push(value);
+                    } else {
+                        data[key] = [data[key], value];
+                    }
                 } else {
-                    data[key] = [data[key], value];
+                    data[key] = value;
                 }
-            } else {
-                data[key] = value;
             }
-        }
 
-        // Add timestamp
-        data.submittedAt = new Date().toISOString();
+            data.submittedAt = new Date().toISOString();
+            console.log('Form Data:', data);
 
-        console.log('Form Data:', data);
+            try {
+                // Simulate API call
+                await new Promise(resolve => setTimeout(resolve, 1500));
 
-        // Simulate API call (replace with actual endpoint)
-        try {
-            // For now, just simulate success
-            await new Promise(resolve => setTimeout(resolve, 1500));
+                // Show success
+                formSection.style.display = 'none';
+                successSection.style.display = 'flex';
+                window.scrollTo({ top: 0, behavior: 'smooth' });
 
-            // In production, send to your backend:
-            // const response = await fetch('/api/buyer-brief', {
-            //     method: 'POST',
-            //     headers: { 'Content-Type': 'application/json' },
-            //     body: JSON.stringify(data)
-            // });
+            } catch (error) {
+                console.error('Submission error:', error);
+                alert('There was an error submitting your form. Please try again.');
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = `
+                    Submit Brief
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                `;
+            }
+        });
+    }
 
-            // Show success message
-            form.style.display = 'none';
-            successMessage.style.display = 'block';
+    // ============================================
+    // VOICE AGENT PLACEHOLDER
+    // ============================================
 
-            // Scroll to top
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+    const startCallBtn = document.getElementById('startCall');
+    if (startCallBtn) {
+        startCallBtn.addEventListener('click', function() {
+            // Placeholder for voice agent integration
+            alert('Voice agent feature coming soon! For now, please use the form option.');
+        });
+    }
 
-        } catch (error) {
-            console.error('Submission error:', error);
-            alert('There was an error submitting your form. Please try again.');
-            submitBtn.disabled = false;
-            submitBtn.classList.remove('loading');
-            submitBtn.textContent = 'Submit Buyer Brief';
-        }
-    });
+    // ============================================
+    // SMOOTH SCROLL FOR ANCHOR LINKS
+    // ============================================
 
-    // Smooth scroll for better UX
-    const sections = document.querySelectorAll('.form-section');
-    sections.forEach(section => {
-        const inputs = section.querySelectorAll('input, select, textarea');
-        inputs.forEach(input => {
-            input.addEventListener('focus', function() {
-                // Optional: smooth scroll section into view
-            });
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function(e) {
+            const targetId = this.getAttribute('href');
+            if (targetId === '#') return;
+
+            const target = document.querySelector(targetId);
+            if (target) {
+                e.preventDefault();
+                target.scrollIntoView({ behavior: 'smooth' });
+            }
         });
     });
+
+    // Initialize
+    showStep(currentStep);
 });

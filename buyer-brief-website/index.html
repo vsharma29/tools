@@ -3,24 +3,139 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Buyer Brief | Your Buyer's Agency</title>
+    <title>Virtual Buyer's Agency | Data-Driven Property Search</title>
     <link rel="stylesheet" href="style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
+    <!-- Navigation -->
+    <nav class="navbar" id="navbar">
+        <div class="nav-container">
+            <a href="#" class="nav-logo">
+                <span class="logo-icon">◆</span>
+                <span>BuyerBrief</span>
+            </a>
+            <div class="nav-links">
+                <a href="#how-it-works">How It Works</a>
+                <a href="#features">Features</a>
+                <a href="#team">Team</a>
+                <a href="#start" class="nav-cta">Get Started</a>
+            </div>
+            <button class="mobile-menu-btn" id="mobileMenuBtn">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Mobile Menu -->
+    <div class="mobile-menu" id="mobileMenu">
+        <a href="#how-it-works">How It Works</a>
+        <a href="#features">Features</a>
+        <a href="#team">Team</a>
+        <a href="#start" class="nav-cta">Get Started</a>
+    </div>
+
     <!-- Hero Section -->
     <section class="hero" id="hero">
-        <div class="hero-bg"></div>
-        <div class="hero-content">
-            <div class="hero-badge animate-fade-in">Buyer's Agency</div>
-            <h1 class="hero-title animate-fade-in-up">Tell us what you're looking for</h1>
-            <p class="hero-subtitle animate-fade-in-up delay-1">We'll find your perfect property. Choose how you'd like to share your requirements.</p>
+        <div class="hero-bg">
+            <div class="grid-pattern"></div>
+            <div class="gradient-orb orb-1"></div>
+            <div class="gradient-orb orb-2"></div>
+        </div>
 
-            <div class="choice-cards animate-fade-in-up delay-2">
-                <div class="choice-card" id="formChoice">
-                    <div class="choice-icon">
+        <div class="hero-content">
+            <div class="hero-badge animate-on-scroll">
+                <span class="badge-dot"></span>
+                Virtual Buyer's Agency
+            </div>
+
+            <h1 class="hero-title animate-on-scroll">
+                Your property search,<br>
+                <span class="text-gradient">at your fingertips</span>
+            </h1>
+
+            <p class="hero-subtitle animate-on-scroll">
+                No more guessing. All backed by data and deep research.<br>
+                We analyze <strong>100+ data points</strong> to find your perfect property.
+            </p>
+
+            <div class="hero-stats animate-on-scroll">
+                <div class="stat">
+                    <span class="stat-number" data-count="100">0</span>
+                    <span class="stat-plus">+</span>
+                    <span class="stat-label">Data Points Analyzed</span>
+                </div>
+                <div class="stat-divider"></div>
+                <div class="stat">
+                    <span class="stat-number" data-count="500">0</span>
+                    <span class="stat-plus">+</span>
+                    <span class="stat-label">Happy Buyers</span>
+                </div>
+                <div class="stat-divider"></div>
+                <div class="stat">
+                    <span class="stat-number" data-count="98">0</span>
+                    <span class="stat-plus">%</span>
+                    <span class="stat-label">Success Rate</span>
+                </div>
+            </div>
+
+            <div class="hero-cta animate-on-scroll">
+                <a href="#start" class="btn btn-primary">
+                    Start Your Search
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                        <polyline points="12 5 19 12 12 19"></polyline>
+                    </svg>
+                </a>
+                <a href="#how-it-works" class="btn btn-secondary">
+                    Learn More
+                </a>
+            </div>
+        </div>
+
+        <div class="scroll-indicator">
+            <div class="mouse">
+                <div class="wheel"></div>
+            </div>
+            <span>Scroll to explore</span>
+        </div>
+    </section>
+
+    <!-- How It Works Section -->
+    <section class="how-it-works" id="how-it-works">
+        <div class="container">
+            <div class="section-header animate-on-scroll">
+                <span class="section-badge">Simple Process</span>
+                <h2>How It Works</h2>
+                <p>Three simple steps to your dream property</p>
+            </div>
+
+            <div class="steps-container">
+                <div class="step-card animate-on-scroll">
+                    <div class="step-number">01</div>
+                    <div class="step-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                        </svg>
+                    </div>
+                    <h3>Share Your Brief</h3>
+                    <p>Tell us what you're looking for via our AI voice agent or detailed form. We capture every detail that matters.</p>
+                </div>
+
+                <div class="step-connector">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                        <polyline points="12 5 19 12 12 19"></polyline>
+                    </svg>
+                </div>
+
+                <div class="step-card animate-on-scroll">
+                    <div class="step-number">02</div>
+                    <div class="step-icon">
                         <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
                             <polyline points="14 2 14 8 20 8"></polyline>
@@ -29,31 +144,258 @@
                             <polyline points="10 9 9 9 8 9"></polyline>
                         </svg>
                     </div>
-                    <h3>Fill out the form</h3>
-                    <p>Take your time to detail exactly what you're looking for</p>
-                    <span class="choice-time">~5 minutes</span>
+                    <h3>We Research</h3>
+                    <p>Our team analyzes 100+ data points including market trends, growth potential, demographics, and infrastructure.</p>
+                </div>
+
+                <div class="step-connector">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                        <polyline points="12 5 19 12 12 19"></polyline>
+                    </svg>
+                </div>
+
+                <div class="step-card animate-on-scroll">
+                    <div class="step-number">03</div>
+                    <div class="step-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                            <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                        </svg>
+                    </div>
+                    <h3>Find Your Home</h3>
+                    <p>We present shortlisted properties that perfectly match your criteria, with full analysis and negotiation support.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features" id="features">
+        <div class="container">
+            <div class="section-header animate-on-scroll">
+                <span class="section-badge">Why Choose Us</span>
+                <h2>Data-Driven Property Search</h2>
+                <p>We don't just find properties—we find the right property for you</p>
+            </div>
+
+            <div class="features-grid">
+                <div class="feature-card large animate-on-scroll">
+                    <div class="feature-visual">
+                        <div class="data-visualization">
+                            <div class="data-bar" style="--height: 60%"></div>
+                            <div class="data-bar" style="--height: 80%"></div>
+                            <div class="data-bar" style="--height: 45%"></div>
+                            <div class="data-bar" style="--height: 90%"></div>
+                            <div class="data-bar" style="--height: 70%"></div>
+                            <div class="data-bar" style="--height: 85%"></div>
+                        </div>
+                    </div>
+                    <div class="feature-content">
+                        <div class="feature-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="18" y1="20" x2="18" y2="10"></line>
+                                <line x1="12" y1="20" x2="12" y2="4"></line>
+                                <line x1="6" y1="20" x2="6" y2="14"></line>
+                            </svg>
+                        </div>
+                        <h3>100+ Data Points</h3>
+                        <p>From suburb demographics to future infrastructure plans, school zones to flood maps—we analyze everything so you don't have to guess.</p>
+                    </div>
+                </div>
+
+                <div class="feature-card animate-on-scroll">
+                    <div class="feature-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <polyline points="12 6 12 12 16 14"></polyline>
+                        </svg>
+                    </div>
+                    <h3>24/7 Availability</h3>
+                    <p>Our AI voice agent is always ready to take your brief, day or night.</p>
+                </div>
+
+                <div class="feature-card animate-on-scroll">
+                    <div class="feature-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                        </svg>
+                    </div>
+                    <h3>Expert Negotiation</h3>
+                    <p>Our buyers agents negotiate on your behalf, saving you time and money.</p>
+                </div>
+
+                <div class="feature-card animate-on-scroll">
+                    <div class="feature-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                            <circle cx="12" cy="10" r="3"></circle>
+                        </svg>
+                    </div>
+                    <h3>Market Intelligence</h3>
+                    <p>Real-time market data and growth predictions for informed decisions.</p>
+                </div>
+
+                <div class="feature-card animate-on-scroll">
+                    <div class="feature-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                        </svg>
+                    </div>
+                    <h3>Off-Market Access</h3>
+                    <p>Exclusive access to properties before they hit the market.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Team Section -->
+    <section class="team" id="team">
+        <div class="container">
+            <div class="section-header animate-on-scroll">
+                <span class="section-badge">Our Team</span>
+                <h2>Meet the Experts</h2>
+                <p>A dedicated team of property professionals at your service</p>
+            </div>
+
+            <div class="team-grid">
+                <div class="team-card animate-on-scroll">
+                    <div class="team-avatar">
+                        <div class="avatar-placeholder">VS</div>
+                    </div>
+                    <h3>Vivek Sharma</h3>
+                    <span class="team-role">Founder & Principal</span>
+                    <p>15+ years in Australian property market. Former investment banker turned buyer's advocate.</p>
+                    <div class="team-social">
+                        <a href="#" aria-label="LinkedIn">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path>
+                                <rect x="2" y="9" width="4" height="12"></rect>
+                                <circle cx="4" cy="4" r="2"></circle>
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="team-card animate-on-scroll">
+                    <div class="team-avatar">
+                        <div class="avatar-placeholder">AVA</div>
+                        <div class="ai-badge">AI</div>
+                    </div>
+                    <h3>Ava</h3>
+                    <span class="team-role">AI Voice Assistant</span>
+                    <p>Available 24/7 to understand your requirements and create detailed buyer briefs instantly.</p>
+                    <div class="team-tags">
+                        <span>Voice Enabled</span>
+                        <span>Always Online</span>
+                    </div>
+                </div>
+
+                <div class="team-card animate-on-scroll">
+                    <div class="team-avatar">
+                        <div class="avatar-placeholder">RA</div>
+                    </div>
+                    <h3>Research Team</h3>
+                    <span class="team-role">Data Analysts</span>
+                    <p>Our research team dives deep into 100+ data points for every property recommendation.</p>
+                    <div class="team-tags">
+                        <span>Market Analysis</span>
+                        <span>Due Diligence</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Start Section (CTA) -->
+    <section class="start-section" id="start">
+        <div class="container">
+            <div class="section-header animate-on-scroll">
+                <span class="section-badge">Get Started</span>
+                <h2>Choose How to Connect</h2>
+                <p>Talk to our AI agent or fill out a detailed brief—your choice</p>
+            </div>
+
+            <div class="choice-container animate-on-scroll">
+                <div class="choice-card" id="voiceChoice">
+                    <div class="choice-icon-wrapper">
+                        <div class="pulse-ring"></div>
+                        <div class="choice-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="choice-badge">Recommended</div>
+                    <h3>Talk to Ava</h3>
+                    <p>Have a natural conversation with our AI voice agent. She'll understand exactly what you need.</p>
+                    <ul class="choice-features">
+                        <li>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                            Natural conversation
+                        </li>
+                        <li>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                            ~3 minutes
+                        </li>
+                        <li>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                            Available 24/7
+                        </li>
+                    </ul>
+                    <button class="choice-btn primary">
+                        <span class="btn-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+                            </svg>
+                        </span>
+                        Start Voice Call
+                    </button>
                 </div>
 
                 <div class="choice-divider">
                     <span>or</span>
                 </div>
 
-                <div class="choice-card" id="voiceChoice">
-                    <div class="choice-icon pulse-ring">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
-                        </svg>
+                <div class="choice-card" id="formChoice">
+                    <div class="choice-icon-wrapper">
+                        <div class="choice-icon secondary">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                <polyline points="14 2 14 8 20 8"></polyline>
+                                <line x1="16" y1="13" x2="8" y2="13"></line>
+                                <line x1="16" y1="17" x2="8" y2="17"></line>
+                                <polyline points="10 9 9 9 8 9"></polyline>
+                            </svg>
+                        </div>
                     </div>
-                    <h3>Talk to our AI agent</h3>
-                    <p>Have a natural conversation with Ava, our buyer's assistant</p>
-                    <span class="choice-time">~3 minutes</span>
+                    <h3>Fill the Form</h3>
+                    <p>Take your time to provide detailed requirements at your own pace.</p>
+                    <ul class="choice-features">
+                        <li>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                            Detailed questions
+                        </li>
+                        <li>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                            ~5 minutes
+                        </li>
+                        <li>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                            Save & continue
+                        </li>
+                    </ul>
+                    <button class="choice-btn secondary">
+                        <span class="btn-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                <polyline points="14 2 14 8 20 8"></polyline>
+                            </svg>
+                        </span>
+                        Open Form
+                    </button>
                 </div>
             </div>
-        </div>
-
-        <div class="scroll-indicator animate-fade-in delay-3">
-            <span>Scroll to begin</span>
-            <div class="scroll-arrow"></div>
         </div>
     </section>
 
@@ -83,7 +425,7 @@
             </div>
 
             <h2>Meet Ava</h2>
-            <p class="voice-description">Your personal buyer's assistant. She'll ask you about your ideal property and create a detailed brief for our agents.</p>
+            <p class="voice-description">Your personal buyer's assistant. She'll ask about your ideal property and create a detailed brief backed by our 100+ point research methodology.</p>
 
             <div class="voice-features">
                 <div class="voice-feature">
@@ -529,13 +871,40 @@
                 </svg>
             </div>
             <h2>Brief Submitted</h2>
-            <p>Thank you for sharing your requirements. One of our buyer's agents will review your brief and be in touch within 24 hours.</p>
+            <p>Thank you for sharing your requirements. Our team will analyze your brief using our 100+ point research methodology and be in touch within 24 hours.</p>
             <a href="#" class="btn-outline" onclick="location.reload()">Submit another brief</a>
         </div>
     </section>
 
+    <!-- Footer -->
     <footer>
-        <p>© 2024 Your Buyer's Agency</p>
+        <div class="footer-container">
+            <div class="footer-main">
+                <div class="footer-brand">
+                    <a href="#" class="footer-logo">
+                        <span class="logo-icon">◆</span>
+                        <span>BuyerBrief</span>
+                    </a>
+                    <p>Your virtual buyer's agency. Data-driven property search at your fingertips.</p>
+                </div>
+                <div class="footer-links">
+                    <div class="footer-column">
+                        <h4>Company</h4>
+                        <a href="#how-it-works">How It Works</a>
+                        <a href="#features">Features</a>
+                        <a href="#team">Our Team</a>
+                    </div>
+                    <div class="footer-column">
+                        <h4>Contact</h4>
+                        <a href="tel:+61400000000">+61 400 000 000</a>
+                        <a href="mailto:hello@buyerbrief.com.au">hello@buyerbrief.com.au</a>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>© 2024 BuyerBrief. All rights reserved.</p>
+            </div>
+        </div>
     </footer>
 
     <script src="script.js"></script>
