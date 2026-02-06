@@ -1,0 +1,13 @@
+{
+  "name": "buyer-brief-website",
+  "version": "1.0.0",
+  "description": "Minimalist buyer brief form for real estate buyer's agency",
+  "private": true,
+  "scripts": {
+    "dev": "npx serve .",
+    "start": "npx serve ."
+  },
+  "keywords": ["real-estate", "buyer-agency", "buyer-brief"],
+  "author": "",
+  "license": "MIT"
+}

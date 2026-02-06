@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Buyer Brief | Your Buyer's Agency</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Buyer Brief</h1>
+            <p class="subtitle">Tell us what you're looking for</p>
+        </header>
+
+        <form id="buyerBriefForm" class="brief-form">
+            <!-- Section 1: About You -->
+            <section class="form-section">
+                <h2>About You</h2>
+
+                <div class="form-group">
+                    <label for="fullName">Full Name *</label>
+                    <input type="text" id="fullName" name="fullName" required placeholder="Enter your full name">
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="email">Email Address *</label>
+                        <input type="email" id="email" name="email" required placeholder="your@email.com">
+                    </div>
+                    <div class="form-group">
+                        <label for="phone">Phone Number *</label>
+                        <input type="tel" id="phone" name="phone" required placeholder="0400 000 000">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="preferredContact">Preferred Contact Method</label>
+                    <select id="preferredContact" name="preferredContact">
+                        <option value="phone">Phone Call</option>
+                        <option value="email">Email</option>
+                        <option value="sms">SMS</option>
+                    </select>
+                </div>
+            </section>
+
+            <!-- Section 2: Purchase Purpose -->
+            <section class="form-section">
+                <h2>What type of purchase is this?</h2>
+
+                <div class="form-group">
+                    <label>Are you buying to live in, or as an investment? *</label>
+                    <div class="radio-group">
+                        <label class="radio-option">
+                            <input type="radio" name="purchasePurpose" value="owner_occupier" required>
+                            <span class="radio-label">I'll be living in it (Owner-Occupier)</span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="purchasePurpose" value="investment">
+                            <span class="radio-label">Investment Property</span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="purchasePurpose" value="smsf">
+                            <span class="radio-label">SMSF Purchase</span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="purchasePurpose" value="holiday">
+                            <span class="radio-label">Holiday Home</span>
+                        </label>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section 3: Budget & Finance -->
+            <section class="form-section">
+                <h2>Budget & Finance</h2>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="budgetMin">Minimum Budget *</label>
+                        <input type="text" id="budgetMin" name="budgetMin" required placeholder="$500,000">
+                        <span class="help-text">The lowest price you'd consider</span>
+                    </div>
+                    <div class="form-group">
+                        <label for="budgetMax">Maximum Budget *</label>
+                        <input type="text" id="budgetMax" name="budgetMax" required placeholder="$800,000">
+                        <span class="help-text">Your absolute ceiling</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="stretchBudget">Would you stretch for the perfect property?</label>
+                    <input type="text" id="stretchBudget" name="stretchBudget" placeholder="$850,000">
+                    <span class="help-text">If the right property came along, what's your absolute max?</span>
+                </div>
+
+                <div class="form-group">
+                    <label for="deposit">Deposit Available</label>
+                    <input type="text" id="deposit" name="deposit" placeholder="$150,000">
+                </div>
+
+                <div class="form-group">
+                    <label>Finance Status *</label>
+                    <div class="radio-group">
+                        <label class="radio-option">
+                            <input type="radio" name="financeStatus" value="pre_approved" required>
+                            <span class="radio-label">Pre-approved</span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="financeStatus" value="in_progress">
+                            <span class="radio-label">In progress</span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="financeStatus" value="not_started">
+                            <span class="radio-label">Not started yet</span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="financeStatus" value="cash">
+                            <span class="radio-label">Cash buyer</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Are you a first home buyer?</label>
+                    <div class="radio-group horizontal">
+                        <label class="radio-option">
+                            <input type="radio" name="firstHomeBuyer" value="yes">
+                            <span class="radio-label">Yes</span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="firstHomeBuyer" value="no">
+                            <span class="radio-label">No</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="form-group" id="fhbGrants" style="display: none;">
+                    <label>Which grants/schemes are you using?</label>
+                    <div class="checkbox-group">
+                        <label class="checkbox-option">
+                            <input type="checkbox" name="grants" value="fhog">
+                            <span class="checkbox-label">First Home Owner Grant (FHOG)</span>
+                        </label>
+                        <label class="checkbox-option">
+                            <input type="checkbox" name="grants" value="fhss">
+                            <span class="checkbox-label">First Home Super Saver (FHSS)</span>
+                        </label>
+                        <label class="checkbox-option">
+                            <input type="checkbox" name="grants" value="stamp_duty">
+                            <span class="checkbox-label">Stamp Duty Concession</span>
+                        </label>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section 4: Location -->
+            <section class="form-section">
+                <h2>Location Preferences</h2>
+
+                <div class="form-group">
+                    <label for="preferredSuburbs">Which suburbs or areas are you considering? *</label>
+                    <textarea id="preferredSuburbs" name="preferredSuburbs" required placeholder="e.g., Inner West Sydney, Marrickville, Dulwich Hill, Newtown..."></textarea>
+                    <span class="help-text">List as many as you like, separated by commas</span>
+                </div>
+
+                <div class="form-group">
+                    <label for="excludedSuburbs">Any suburbs or areas you want to avoid?</label>
+                    <textarea id="excludedSuburbs" name="excludedSuburbs" placeholder="e.g., Near main roads, flood zones..."></textarea>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="commuteDestination">Where do you work / commute to?</label>
+                        <input type="text" id="commuteDestination" name="commuteDestination" placeholder="e.g., Sydney CBD">
+                    </div>
+                    <div class="form-group">
+                        <label for="maxCommute">Maximum commute time (minutes)</label>
+                        <input type="number" id="maxCommute" name="maxCommute" placeholder="45">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Commute mode</label>
+                    <div class="checkbox-group horizontal">
+                        <label class="checkbox-option">
+                            <input type="checkbox" name="commuteMode" value="car">
+                            <span class="checkbox-label">Car</span>
+                        </label>
+                        <label class="checkbox-option">
+                            <input type="checkbox" name="commuteMode" value="public_transport">
+                            <span class="checkbox-label">Public Transport</span>
+                        </label>
+                        <label class="checkbox-option">
+                            <input type="checkbox" name="commuteMode" value="bike">
+                            <span class="checkbox-label">Bike</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="proximityRequirements">Do you need to be close to anything specific?</label>
+                    <textarea id="proximityRequirements" name="proximityRequirements" placeholder="e.g., Beach, train station, specific school, hospital, parks..."></textarea>
+                </div>
+            </section>
+
+            <!-- Section 5: Property Type -->
+            <section class="form-section">
+                <h2>Property Requirements</h2>
+
+                <div class="form-group">
+                    <label>Property Type *</label>
+                    <div class="checkbox-group">
+                        <label class="checkbox-option">
+                            <input type="checkbox" name="propertyType" value="house">
+                            <span class="checkbox-label">House</span>
+                        </label>
+                        <label class="checkbox-option">
+                            <input type="checkbox" name="propertyType" value="townhouse">
+                            <span class="checkbox-label">Townhouse</span>
+                        </label>
+                        <label class="checkbox-option">
+                            <input type="checkbox" name="propertyType" value="apartment">
+                            <span class="checkbox-label">Apartment / Unit</span>
+                        </label>
+                        <label class="checkbox-option">
+                            <input type="checkbox" name="propertyType" value="villa">
+                            <span class="checkbox-label">Villa</span>
+                        </label>
+                        <label class="checkbox-option">
+                            <input type="checkbox" name="propertyType" value="duplex">
+                            <span class="checkbox-label">Duplex</span>
+                        </label>
+                        <label class="checkbox-option">
+                            <input type="checkbox" name="propertyType" value="land">
+                            <span class="checkbox-label">Land Only</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="form-row three-col">
+                    <div class="form-group">
+                        <label for="bedrooms">Bedrooms (min) *</label>
+                        <select id="bedrooms" name="bedrooms" required>
+                            <option value="">Select</option>
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                            <option value="4">4</option>
+                            <option value="5">5+</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="bathrooms">Bathrooms (min)</label>
+                        <select id="bathrooms" name="bathrooms">
+                            <option value="">Select</option>
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                            <option value="3">3+</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="carSpaces">Car Spaces (min)</label>
+                        <select id="carSpaces" name="carSpaces">
+                            <option value="">Select</option>
+                            <option value="0">0 (Street parking OK)</option>
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                            <option value="3">3+</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="landSizeMin">Land Size (min sqm)</label>
+                        <input type="number" id="landSizeMin" name="landSizeMin" placeholder="300">
+                    </div>
+                    <div class="form-group">
+                        <label for="landSizeMax">Land Size (max sqm)</label>
+                        <input type="number" id="landSizeMax" name="landSizeMax" placeholder="800">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Storey preference</label>
+                    <div class="radio-group horizontal">
+                        <label class="radio-option">
+                            <input type="radio" name="storeys" value="single">
+                            <span class="radio-label">Single storey</span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="storeys" value="double">
+                            <span class="radio-label">Double storey</span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="storeys" value="no_preference">
+                            <span class="radio-label">No preference</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Property condition preference</label>
+                    <div class="radio-group">
+                        <label class="radio-option">
+                            <input type="radio" name="condition" value="move_in_ready">
+                            <span class="radio-label">Move-in ready (no work needed)</span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="condition" value="cosmetic_reno">
+                            <span class="radio-label">Cosmetic renovation OK (paint, floors, kitchen)</span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="condition" value="major_reno">
+                            <span class="radio-label">Major renovation OK (structural changes)</span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="condition" value="knockdown">
+                            <span class="radio-label">Knockdown rebuild</span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="condition" value="any">
+                            <span class="radio-label">Open to anything</span>
+                        </label>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section 6: Features -->
+            <section class="form-section">
+                <h2>Must-Haves & Nice-to-Haves</h2>
+
+                <div class="form-group">
+                    <label>Which features are important to you?</label>
+                    <div class="feature-grid">
+                        <div class="feature-item">
+                            <span class="feature-name">Pool</span>
+                            <select name="feature_pool">
+                                <option value="no_preference">No preference</option>
+                                <option value="must_have">Must have</option>
+                                <option value="nice_to_have">Nice to have</option>
+                                <option value="dont_want">Don't want</option>
+                            </select>
+                        </div>
+                        <div class="feature-item">
+                            <span class="feature-name">Outdoor entertaining</span>
+                            <select name="feature_outdoor">
+                                <option value="no_preference">No preference</option>
+                                <option value="must_have">Must have</option>
+                                <option value="nice_to_have">Nice to have</option>
+                            </select>
+                        </div>
+                        <div class="feature-item">
+                            <span class="feature-name">Study / Home office</span>
+                            <select name="feature_study">
+                                <option value="no_preference">No preference</option>
+                                <option value="must_have">Must have</option>
+                                <option value="nice_to_have">Nice to have</option>
+                            </select>
+                        </div>
+                        <div class="feature-item">
+                            <span class="feature-name">Granny flat potential</span>
+                            <select name="feature_granny_flat">
+                                <option value="no_preference">No preference</option>
+                                <option value="must_have">Must have</option>
+                                <option value="nice_to_have">Nice to have</option>
+                            </select>
+                        </div>
+                        <div class="feature-item">
+                            <span class="feature-name">Air conditioning</span>
+                            <select name="feature_aircon">
+                                <option value="no_preference">No preference</option>
+                                <option value="must_have">Must have</option>
+                                <option value="nice_to_have">Nice to have</option>
+                            </select>
+                        </div>
+                        <div class="feature-item">
+                            <span class="feature-name">Solar panels</span>
+                            <select name="feature_solar">
+                                <option value="no_preference">No preference</option>
+                                <option value="must_have">Must have</option>
+                                <option value="nice_to_have">Nice to have</option>
+                            </select>
+                        </div>
+                        <div class="feature-item">
+                            <span class="feature-name">North-facing living</span>
+                            <select name="feature_north_facing">
+                                <option value="no_preference">No preference</option>
+                                <option value="must_have">Must have</option>
+                                <option value="nice_to_have">Nice to have</option>
+                            </select>
+                        </div>
+                        <div class="feature-item">
+                            <span class="feature-name">View (water/city/bush)</span>
+                            <select name="feature_view">
+                                <option value="no_preference">No preference</option>
+                                <option value="must_have">Must have</option>
+                                <option value="nice_to_have">Nice to have</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="dealBreakers">Absolute deal-breakers (things you won't accept)</label>
+                    <textarea id="dealBreakers" name="dealBreakers" placeholder="e.g., Main road, no garage, strata over $2000/qtr, flood zone..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="niceToHaves">Other nice-to-haves</label>
+                    <textarea id="niceToHaves" name="niceToHaves" placeholder="e.g., Quiet street, cul-de-sac, period features, modern kitchen..."></textarea>
+                </div>
+            </section>
+
+            <!-- Section 7: Lifestyle (Owner-Occupier) -->
+            <section class="form-section" id="lifestyleSection">
+                <h2>Lifestyle & Household</h2>
+
+                <div class="form-group">
+                    <label>Who will be living in the property?</label>
+                    <div class="radio-group">
+                        <label class="radio-option">
+                            <input type="radio" name="household" value="single">
+                            <span class="radio-label">Just me</span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="household" value="couple">
+                            <span class="radio-label">Couple</span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="household" value="family">
+                            <span class="radio-label">Family with children</span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="household" value="downsizer">
+                            <span class="radio-label">Downsizer</span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="household" value="shared">
+                            <span class="radio-label">Shared household</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Current living situation</label>
+                    <div class="radio-group">
+                        <label class="radio-option">
+                            <input type="radio" name="currentSituation" value="renting">
+                            <span class="radio-label">Currently renting</span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="currentSituation" value="own_selling">
+                            <span class="radio-label">Own a property (will sell)</span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="currentSituation" value="own_keeping">
+                            <span class="radio-label">Own a property (will keep)</span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="currentSituation" value="family">
+                            <span class="radio-label">Living with family</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="schoolRequirements">School requirements (if applicable)</label>
+                    <textarea id="schoolRequirements" name="schoolRequirements" placeholder="e.g., Near public primary school, specific school catchment (Sydney Grammar), prefer private schools..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="lifestylePriorities">Lifestyle priorities</label>
+                    <textarea id="lifestylePriorities" name="lifestylePriorities" placeholder="e.g., Cafe culture, quiet street, near parks, close to nightlife, family-friendly neighbourhood..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Do you have pets?</label>
+                    <div class="radio-group horizontal">
+                        <label class="radio-option">
+                            <input type="radio" name="pets" value="yes">
+                            <span class="radio-label">Yes</span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="pets" value="no">
+                            <span class="radio-label">No</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="form-group" id="petDetails" style="display: none;">
+                    <label for="petDescription">What pets do you have?</label>
+                    <input type="text" id="petDescription" name="petDescription" placeholder="e.g., 2 dogs (medium size), 1 cat">
+                </div>
+            </section>
+
+            <!-- Section 8: Investment (Show if investor) -->
+            <section class="form-section" id="investmentSection" style="display: none;">
+                <h2>Investment Strategy</h2>
+
+                <div class="form-group">
+                    <label>What's your investment strategy?</label>
+                    <div class="radio-group">
+                        <label class="radio-option">
+                            <input type="radio" name="investmentStrategy" value="cash_flow">
+                            <span class="radio-label">Cash flow (high rental yield)</span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="investmentStrategy" value="capital_growth">
+                            <span class="radio-label">Capital growth (long-term appreciation)</span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="investmentStrategy" value="balanced">
+                            <span class="radio-label">Balanced (both)</span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="investmentStrategy" value="value_add">
+                            <span class="radio-label">Value-add (renovate to increase value)</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="targetYield">Target rental yield (%)</label>
+                        <input type="text" id="targetYield" name="targetYield" placeholder="e.g., 5%">
+                    </div>
+                    <div class="form-group">
+                        <label for="targetRent">Target weekly rent</label>
+                        <input type="text" id="targetRent" name="targetRent" placeholder="e.g., $600/week">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="portfolioSize">How many investment properties do you currently own?</label>
+                    <select id="portfolioSize" name="portfolioSize">
+                        <option value="0">This will be my first</option>
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3-5">3-5</option>
+                        <option value="5+">More than 5</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Is depreciation important for your tax situation?</label>
+                    <div class="radio-group horizontal">
+                        <label class="radio-option">
+                            <input type="radio" name="depreciation" value="yes">
+                            <span class="radio-label">Yes, very</span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="depreciation" value="somewhat">
+                            <span class="radio-label">Somewhat</span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="depreciation" value="no">
+                            <span class="radio-label">Not really</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Would you prefer a property with a tenant already in place?</label>
+                    <div class="radio-group horizontal">
+                        <label class="radio-option">
+                            <input type="radio" name="tenantInPlace" value="yes">
+                            <span class="radio-label">Yes, preferred</span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="tenantInPlace" value="no_preference">
+                            <span class="radio-label">No preference</span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="tenantInPlace" value="no">
+                            <span class="radio-label">Prefer vacant</span>
+                        </label>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section 9: Buying Process -->
+            <section class="form-section">
+                <h2>Buying Timeline & Process</h2>
+
+                <div class="form-group">
+                    <label>When are you looking to buy? *</label>
+                    <div class="radio-group">
+                        <label class="radio-option">
+                            <input type="radio" name="timeline" value="immediate" required>
+                            <span class="radio-label">As soon as possible</span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="timeline" value="1-3_months">
+                            <span class="radio-label">1-3 months</span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="timeline" value="3-6_months">
+                            <span class="radio-label">3-6 months</span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="timeline" value="6-12_months">
+                            <span class="radio-label">6-12 months</span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="timeline" value="exploring">
+                            <span class="radio-label">Just exploring (12+ months)</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>How do you feel about auctions?</label>
+                    <div class="radio-group">
+                        <label class="radio-option">
+                            <input type="radio" name="auctionComfort" value="comfortable">
+                            <span class="radio-label">Comfortable bidding at auction</span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="auctionComfort" value="will_consider">
+                            <span class="radio-label">Will consider, but prefer private treaty</span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="auctionComfort" value="no_auctions">
+                            <span class="radio-label">No auctions</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="offersMode">Have you made any offers on properties yet?</label>
+                    <select id="offersMode" name="offersMode">
+                        <option value="no">No, just starting</option>
+                        <option value="1-2">Yes, 1-2 offers</option>
+                        <option value="3-5">Yes, 3-5 offers</option>
+                        <option value="5+">Yes, more than 5</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Do you have a solicitor or conveyancer?</label>
+                    <div class="radio-group horizontal">
+                        <label class="radio-option">
+                            <input type="radio" name="hasSolicitor" value="yes">
+                            <span class="radio-label">Yes</span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="hasSolicitor" value="no">
+                            <span class="radio-label">No, need recommendation</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="form-group" id="currentPropertySection">
+                    <label>Do you have a property to sell first?</label>
+                    <div class="radio-group horizontal">
+                        <label class="radio-option">
+                            <input type="radio" name="hasPropertyToSell" value="yes">
+                            <span class="radio-label">Yes</span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="hasPropertyToSell" value="no">
+                            <span class="radio-label">No</span>
+                        </label>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section 10: Additional Notes -->
+            <section class="form-section">
+                <h2>Anything Else?</h2>
+
+                <div class="form-group">
+                    <label for="additionalNotes">Is there anything else you'd like us to know?</label>
+                    <textarea id="additionalNotes" name="additionalNotes" rows="5" placeholder="Any other requirements, preferences, or context that would help us find the right property for you..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="howHeard">How did you hear about us?</label>
+                    <select id="howHeard" name="howHeard">
+                        <option value="">Select</option>
+                        <option value="google">Google Search</option>
+                        <option value="referral">Friend/Family Referral</option>
+                        <option value="social_media">Social Media</option>
+                        <option value="advertisement">Advertisement</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+            </section>
+
+            <!-- Submit -->
+            <section class="form-section submit-section">
+                <button type="submit" class="submit-btn">Submit Buyer Brief</button>
+                <p class="privacy-note">Your information is kept confidential and will only be used to help find your ideal property.</p>
+            </section>
+        </form>
+
+        <div id="successMessage" class="success-message" style="display: none;">
+            <h2>Thank You</h2>
+            <p>Your buyer brief has been submitted successfully.</p>
+            <p>One of our buyer's agents will review your requirements and be in touch within 24 hours.</p>
+        </div>
+
+        <footer>
+            <p>&copy; 2024 Your Buyer's Agency</p>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
