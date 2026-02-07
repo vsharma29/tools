@@ -10,11 +10,23 @@
       "use": "@vercel/static"
     },
     {
-      "src": "*.js",
+      "src": "script.js",
       "use": "@vercel/static"
+    },
+    {
+      "src": "api/*.py",
+      "use": "@vercel/python"
     }
   ],
   "routes": [
+    {
+      "src": "/api/submit",
+      "dest": "/api/submit.py"
+    },
+    {
+      "src": "/api/briefs",
+      "dest": "/api/briefs.py"
+    },
     {
       "src": "/(.*)",
       "dest": "/$1"

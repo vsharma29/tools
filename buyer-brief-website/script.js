@@ -309,13 +309,25 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log('Form Data:', data);
 
             try {
-                // Simulate API call
-                await new Promise(resolve => setTimeout(resolve, 1500));
+                // Submit to backend API
+                const response = await fetch('/api/submit', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
 
-                // Show success
-                formSection.style.display = 'none';
-                successSection.style.display = 'flex';
-                window.scrollTo({ top: 0, behavior: 'smooth' });
+                const result = await response.json();
+
+                if (result.success) {
+                    // Show success
+                    formSection.style.display = 'none';
+                    successSection.style.display = 'flex';
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                } else {
+                    throw new Error(result.error || 'Submission failed');
+                }
 
             } catch (error) {
                 console.error('Submission error:', error);
@@ -332,16 +344,10 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ============================================
-    // VOICE AGENT PLACEHOLDER
+    // VOICE CALL - Now uses tel: link directly
     // ============================================
-
-    const startCallBtn = document.getElementById('startCall');
-    if (startCallBtn) {
-        startCallBtn.addEventListener('click', function() {
-            // Placeholder for voice agent integration
-            alert('Voice agent feature coming soon! For now, please use the form option.');
-        });
-    }
+    // The "Call Ava Now" buttons are now anchor tags with tel:+61485027700
+    // which opens the phone dialer directly on mobile/desktop
 
     // ============================================
     // SMOOTH SCROLL FOR ANCHOR LINKS
