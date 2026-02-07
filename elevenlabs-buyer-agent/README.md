@@ -1,141 +1,295 @@
-# ElevenLabs Voice Agent - Outbound Calling System
+# ElevenLabs Buyer Agent
 
-Three interfaces to trigger outbound calls using your ElevenLabs voice agent:
+A complete voice agent system for real estate buyer inquiries, powered by ElevenLabs Conversational AI and Twilio.
 
-## 1. Web Dashboard
+## Architecture
 
-Modern web interface for managing prospects and campaigns.
+```
+┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
+│   Inbound Call  │────▶│     Twilio      │────▶│   ElevenLabs    │
+│  (Prospect)     │     │  +61485027700   │     │   Voice Agent   │
+└─────────────────┘     └─────────────────┘     └─────────────────┘
+                               │
+                               │ SMS
+                               ▼
+                        ┌─────────────────┐     ┌─────────────────┐
+                        │   SMS Trigger   │────▶│  Outbound Call  │
+                        │   (Your Team)   │     │  (To Prospect)  │
+                        └─────────────────┘     └─────────────────┘
+                               │
+                               ▼
+                        ┌─────────────────┐
+                        │  Memory Service │
+                        │     (Mem0)      │
+                        └─────────────────┘
+```
+
+## Deployed Services
+
+| Service | URL | Purpose |
+|---------|-----|---------|
+| Web Dashboard | https://webdashboard-navy.vercel.app | Upload CSV, manage campaigns |
+| SMS/Voice Trigger | https://smstrigger.vercel.app | Text/call to trigger outbound calls |
+| Memory Service | https://memoryservice.vercel.app | Persistent caller memory via Mem0 |
+
+## Quick Start
+
+### 1. Prerequisites
+
+- Twilio account with phone number
+- ElevenLabs account with Conversational AI access
+- Vercel account (for deployments)
+- Mem0 account (for memory, optional)
+
+### 2. Connect Twilio to ElevenLabs (Required First Step)
+
+**This must be done in ElevenLabs before webhooks will work:**
+
+1. Go to https://elevenlabs.io/app/conversational-ai
+2. Select your agent → **Phone Numbers** tab
+3. Click **Connect Twilio**
+4. Enter your Twilio credentials:
+   - Account SID: `ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx`
+   - Auth Token: `xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx`
+5. Click **Import Phone Numbers**
+6. Select your Twilio number to link it to the agent
+
+This syncs your Twilio number with ElevenLabs and auto-configures the voice webhook.
+
+### 3. Configure SMS Webhook (For Trigger Service)
+
+After connecting Twilio to ElevenLabs, add the SMS webhook:
 
 ```bash
-cd web_dashboard
-pip install -r ../requirements.txt
-python app.py
+# Using the configuration script
+python scripts/configure_twilio.py --update-webhooks \
+  --sms-url "https://smstrigger.vercel.app/sms"
 ```
 
-Open http://localhost:5000
+Or manually in Twilio Console:
+1. Go to https://console.twilio.com/phone-numbers
+2. Click your number
+3. Under "Messaging" → "A Message Comes In"
+4. Set webhook URL: `https://smstrigger.vercel.app/sms`
 
-**Features:**
-- Upload CSV files with prospects
-- Add prospects manually
-- Start/stop campaigns
-- Real-time progress monitoring
-- Call logs
+### 4. Set Environment Variables (Vercel)
 
----
-
-## 2. Google Sheets Integration
-
-Sync prospects from a Google Sheet and auto-call them.
-
-### Setup
-
-1. Create a Google Cloud Project
-2. Enable Google Sheets API
-3. Create a Service Account
-4. Download `credentials.json`
-5. Share your Sheet with the service account email
-
-### Sheet Format
-
-| Name | Phone | Email | Context | Status | Call Date | Conversation ID | Notes |
-|------|-------|-------|---------|--------|-----------|-----------------|-------|
-| John | +61... | john@... | Looking for... | pending | | | |
-
-### Usage
-
-```bash
-# Set environment variables
-export GOOGLE_SPREADSHEET_ID="your_spreadsheet_id"
-export GOOGLE_CREDENTIALS_FILE="credentials.json"
-
-# Run one-time campaign
-python google_sheets_sync.py campaign
-
-# Or watch for new prospects continuously
-python google_sheets_sync.py watch
+**For SMS Trigger:**
+```
+TWILIO_ACCOUNT_SID=ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+TWILIO_AUTH_TOKEN=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+TWILIO_PHONE_NUMBER=+61485027700
+ELEVENLABS_API_KEY=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+ELEVENLABS_AGENT_ID=agent_xxxxxxxxxxxxxxxxxxxxxxxx
+AGENT_PHONE_NUMBER=pn_xxxxxxxx  # ElevenLabs phone ID for outbound
+AUTHORIZED_NUMBERS=+61400111222,+61400333444  # Optional whitelist
 ```
 
----
+**For Memory Service:**
+```
+MEM0_API_KEY=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+```
 
-## 3. SMS/iMessage Trigger
+## Usage
 
-Text commands to trigger calls from your phone.
+### Inbound Calls (Prospects → Agent)
 
-### Setup
-
-1. Get a Twilio phone number
-2. Deploy this app (Heroku, Railway, or ngrok)
-3. Set webhook URL in Twilio: `https://your-app.com/sms`
-
-### SMS Commands
+Prospects call your Twilio number → ElevenLabs agent answers automatically.
 
 ```
-CALL John,+61400000001,Interested in Inner West
-CALL +61400000001
++61 485 027 700  →  ElevenLabs Buyer Agent
+```
+
+### Outbound Calls via SMS
+
+Text your Twilio number:
+
+```
+CALL John,+61400123456,Interested in Inner West
+CALL +61400123456
 STATUS
 HELP
 ```
 
-### Run Locally
+### Outbound Calls via Voice
 
-```bash
-pip install -r requirements.txt
-python sms_trigger.py
+Call the trigger number and speak naturally:
+
+```
+"Call John at 0400 123 456 about the Inner West property"
+"Call 0412 345 678"
 ```
 
-For testing, use ngrok:
-```bash
-ngrok http 5001
-```
+### Outbound Calls via Web Dashboard
 
----
-
-## Environment Variables
-
-```bash
-# ElevenLabs
-ELEVENLABS_API_KEY=your_key
-ELEVENLABS_AGENT_ID=your_agent_id
-AGENT_PHONE_NUMBER=+1234567890
-
-# Twilio
-TWILIO_ACCOUNT_SID=your_sid
-TWILIO_AUTH_TOKEN=your_token
-TWILIO_PHONE_NUMBER=+1234567890
-
-# Google Sheets
-GOOGLE_SPREADSHEET_ID=your_sheet_id
-GOOGLE_CREDENTIALS_FILE=credentials.json
-```
-
----
+1. Go to https://webdashboard-navy.vercel.app
+2. Upload CSV with prospects
+3. Click "Start Campaign"
 
 ## CSV Format
 
 ```csv
-name,phone,email,context
-John Smith,+61400000001,john@example.com,Looking for 3-bed in Sydney
-Sarah Lee,+61400000002,sarah@example.com,First home buyer
+name,phone,context
+John Smith,+61400123456,Interested in 3-bed house Inner West
+Sarah Jones,+61400234567,Budget $1.5M looking in Bondi
 ```
 
----
+## Memory Integration (Mem0)
 
-## Quick Start
+Enable the agent to remember past interactions per caller.
+
+### Add Memory Tools to ElevenLabs Agent
+
+1. Go to your agent → **Tools** section
+
+2. Add `retrieveMemories`:
+```json
+{
+  "name": "retrieveMemories",
+  "description": "Retrieve relevant information from past conversations with this caller",
+  "webhook_url": "https://memoryservice.vercel.app/tools/retrieveMemories",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "query": { "type": "string" }
+    },
+    "required": ["query"]
+  }
+}
+```
+
+3. Add `addMemories`:
+```json
+{
+  "name": "addMemories",
+  "description": "Store important information to remember for future calls",
+  "webhook_url": "https://memoryservice.vercel.app/tools/addMemories",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "message": { "type": "string" }
+    },
+    "required": ["message"]
+  }
+}
+```
+
+4. Update agent system prompt:
+```
+At the start of each call, use retrieveMemories to check for past interactions.
+When the caller shares preferences, requirements, or important details, use addMemories to save them.
+```
+
+## Twilio Configuration Script
 
 ```bash
-# Install dependencies
-pip install -r requirements.txt
+# Interactive setup wizard
+python scripts/configure_twilio.py --setup
 
-# Set environment variables
-cp .env.example .env
-# Edit .env with your credentials
+# Check current configuration
+python scripts/configure_twilio.py --status
 
-# Option 1: Web Dashboard
-python web_dashboard/app.py
+# View recent calls
+python scripts/configure_twilio.py --calls
 
-# Option 2: Google Sheets
-python google_sheets_sync.py watch
+# Check errors for a failed call
+python scripts/configure_twilio.py --errors CA1234567890abcdef
 
-# Option 3: SMS
-python sms_trigger.py
+# Update webhooks
+python scripts/configure_twilio.py --update-webhooks \
+  --sms-url "https://smstrigger.vercel.app/sms"
 ```
+
+## Troubleshooting
+
+### Error 21264: From Phone Number Not Verified
+
+**Cause:** Twilio trial account restriction.
+
+**Fix:**
+- Verify calling number at https://console.twilio.com/verified-caller-ids
+- Or upgrade to paid Twilio account
+
+### Error 11200: HTTP 502 from ElevenLabs
+
+**Cause:** ElevenLabs webhook not responding.
+
+**Fix:**
+1. Ensure Twilio is connected via ElevenLabs Phone Numbers section first
+2. Use main endpoint `api.elevenlabs.io` (not regional like `api.au.elevenlabs.io`)
+3. Verify agent ID is correct
+
+### Calls connecting but agent doesn't respond
+
+**Cause:** Twilio not properly linked to ElevenLabs.
+
+**Fix:**
+1. Go to ElevenLabs → Conversational AI → Phone Numbers
+2. Disconnect and reconnect Twilio
+3. Re-import your phone number
+4. Test inbound call again
+
+### SMS trigger not working
+
+**Cause:** Missing environment variables or wrong webhook.
+
+**Fix:**
+1. Verify SMS webhook is set to `https://smstrigger.vercel.app/sms`
+2. Check Vercel environment variables are set
+3. Redeploy: `cd sms_trigger && vercel --prod`
+
+## File Structure
+
+```
+elevenlabs-buyer-agent/
+├── README.md
+├── requirements.txt
+├── .env.example
+├── outbound_caller.py          # Core outbound calling module
+├── google_sheets_sync.py       # Google Sheets integration
+├── scripts/
+│   └── configure_twilio.py     # Twilio configuration script
+├── web_dashboard/
+│   ├── app.py                  # Flask web dashboard
+│   ├── templates/
+│   │   └── dashboard.html
+│   ├── vercel.json
+│   └── requirements.txt
+├── sms_trigger/
+│   ├── app.py                  # SMS & voice trigger service
+│   ├── vercel.json
+│   └── requirements.txt
+└── memory_service/
+    ├── app.py                  # Mem0 webhook handler
+    ├── ELEVENLABS_SETUP.md
+    ├── vercel.json
+    └── requirements.txt
+```
+
+## Credentials Reference
+
+| Service | Credential | Where to Find |
+|---------|------------|---------------|
+| Twilio | Account SID | https://console.twilio.com |
+| Twilio | Auth Token | https://console.twilio.com |
+| ElevenLabs | API Key | https://elevenlabs.io/app/settings/api-keys |
+| ElevenLabs | Agent ID | Agent settings or URL |
+| Mem0 | API Key | https://app.mem0.ai |
+| Vercel | Token | https://vercel.com/account/tokens |
+
+## Deployment
+
+Each service is deployed on Vercel. To redeploy after changes:
+
+```bash
+cd web_dashboard && vercel --prod
+cd sms_trigger && vercel --prod
+cd memory_service && vercel --prod
+```
+
+## Security Notes
+
+- **AUTHORIZED_NUMBERS**: Whitelist for SMS/voice trigger access (your team only)
+- **API Keys**: Store in Vercel environment variables, never commit to code
+- **Twilio Trial**: Only verified numbers can call - upgrade for production
+- **Separate Numbers**: Use different Twilio numbers for inbound (prospects) vs trigger (your team)
